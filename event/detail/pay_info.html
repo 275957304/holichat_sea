@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>活力圈</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="format-detection" content="telephone=no"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="distribution" content="global" />
+<meta name="author" content="活力圈" />
+<meta name="webcrawlers" content="all" />
+<link rel="stylesheet" type="text/css" href="../../dist/css/hlq.min.css">
+<script type="text/javascript" src="../../dist/js/zepto.min.js"></script>
+<script type="text/javascript" src="../../dist/js/base.js"></script>
+</head>
+<body>
+<header class="header">
+    <div class="bnt-back" onclick="history.back()"><i class="icon-back"></i></div>
+    <h1>报名信息</h1>
+</header>
+<footer class="footer">
+    
+</footer>
+
+<div class="main">
+    <div class="weui_list_text">
+        <div class="tc">
+            <h4 id="title"></h4>
+            <img id="rwm" width="110" height="110" class="center-block" src="" alt="订单二维码"> 
+            <p>号码:<span id="number"></span> (<span class="gary" id="verification"></span>)</p>
+        </div>       
+    </div>
+	
+	<div class="weui_cells">
+		<div class="weui_cell">开始时间 <span id="time" class="weui_cell_desc"></span></div>
+		<div class="weui_cell">地点 <span id="location" class="weui_cell_desc"></span></div>
+		<div class="weui_cell">项目<span id="project" class="weui_cell_desc"></span></div>
+		<div class="weui_cell">组别<span id="group" class="weui_cell_desc"></span></div>
+	</div>
+	
+	<div class="weui_cells_title"><!--a id="showActionSheet" class="weui_btn weui_btn_mini weui_btn_default btn_edit" href="javascript:;">修改</a--> 报名信息</div>
+	
+	<div id="enroll_infos" class="weui_cells">
+		<div id="team_name"></div>
+	</div>
+
+</div>
+
+<!--div id="actionSheet_wrap">
+    <div class="weui_mask_transition" id="mask"></div>
+    <div class="weui_actionsheet" id="weui_actionsheet">
+        <div class="weui_actionsheet_menu weui_cells m0">
+            <div class="weui_cell">
+				<div class="weui_cell_hd"><label class="weui_label">姓名</label></div>
+				<div class="weui_cell_bd weui_cell_primary">
+					<input type="text" placeholder="请输入姓名" class="weui_input">
+				</div>
+			</div>
+			<div class="weui_cell">
+				<div class="weui_cell_hd"><label class="weui_label">电话</label></div>
+				<div class="weui_cell_bd weui_cell_primary">
+					<input type="number" placeholder="请输电话" class="weui_input">
+				</div>
+			</div>
+			<div class="weui_cell weui_cell_select weui_select_after">
+				<div class="weui_cell_hd">
+					<label class="weui_label" for="">性别</label>
+				</div>
+				<div class="weui_cell_bd weui_cell_primary">
+					<select name="select2" class="weui_select">
+						<option value="男">男</option>
+						<option value="女">女</option>
+					</select>
+				</div>
+			</div>
+        </div>
+        <div class="weui_actionsheet_action">
+			<div class="btn_group">
+				<div class="btn_default"><a class="weui_btn weui_btn_default" id="actionsheet_cancel" href="javascript:;">取消</a></div>
+				<div class="btn_default"><a class="weui_btn weui_btn_warn" href="javascript:;">确认</a></div>
+			</div>           
+        </div>
+    </div>
+</div-->
+
+<script type="text/javascript">
+$(function(){
+	var event_enroll_id = H.getURLVar('event_enroll_id');
+	var event_id = H.getURLVar('event_id'); 
+    var project_id = H.getURLVar('project_id'); 
+    var group_id = H.getURLVar('group_id');
+	var _html ='';
+	$.ajax({
+        type: 'get',
+        url: H.eventOrderInfoURL,
+        data: {
+            session:H.session, 
+            uid:H.uid, 
+            event_enroll_id:event_enroll_id
+        },
+        dataType: 'json',
+        beforeSend : function(){
+            H.tips("加载中...",1);
+        },
+        success: function(data){
+			$('.tips').hide();			
+			var event_id = data.data.event_id;
+			$('#title').html(data.data.title);
+			$('#rwm').attr('src','http://pan.baidu.com/share/qrcode?w=300&h=300&url='+ event_enroll_id);
+			$('#number').text(data.data.event_enroll_id);			
+			$('.footer').append('<a class="weui_btn weui_btn_warn" href="index.html?event_id='+ event_id +'">查看详情</a>')
+			//项目
+			var projectGroup = H.getGroup(data.data.event_project_id,data.data.event_group_id);	
+			var getProjectGroup = JSON.parse(projectGroup);
+			$('#group').text(getProjectGroup.data.group);			
+			$('#project').text(getProjectGroup.data.project);			
+			//开始时间与地址
+			$.get(H.getBriefURL,{'event_id' : event_id},function(data){
+				$('#time').text(data.data.begin_date.substring(0,10));
+				$('#location').text( H.getAddress(data.data.region_id)  + data.data.address )
+			},'json');
+			
+			//报名信息
+			$.get(baseURL + 'event/team/event_team_info',{'event_enroll_id':event_enroll_id},function(data){
+				if(data.data){
+					$('#team_name').append('<div class="weui_cell">队伍名称 <span class="weui_cell_desc">'+ data.data.team_name +'</span></div>');
+				}
+			},'json');
+			
+			$.each(data.data.enroll_infos,function(index,item){	
+				console.log(item)
+				_html += '<div class="weui_cells_title">参赛者'+ (index+1) +'</div>';
+				if(item.truename){
+					_html += '<div class="weui_cell">姓名 <span class="weui_cell_desc">'+ item.truename +'</span></div>'
+				}
+				if(item.phone){
+					_html += '<div class="weui_cell">联系电话 <span class="weui_cell_desc">'+ item.phone +'</span></div>'
+				}
+				if(item.idcard){
+					_html += '<div class="weui_cell">身份证 <span class="weui_cell_desc">'+ item.idcard +'</span></div>'
+				}
+				if(item.other_fields){
+					var fields = JSON.parse(item.other_fields);
+					$.ajax({
+						url: H.getEnrollInfoURL,
+						async: false,//改为同步方式
+						type: "GET",
+						data: {session:H.session, uid:H.uid, event_id:event_id},
+						dataType: 'json',
+						success: function (data) {
+							console.log(data)
+							$.each(data.data.project,function(index, item){
+								if(project_id == item.id){	
+									$.each(item.group,function(i,val){						
+										if(group_id == val.id){	
+											var template = JSON.parse(val.enroll_template);
+											$.each(template,function(i,val){										
+												if(fields[val.key]){
+													console.log(val)
+													_html += '<div class="weui_cell">' + val.name + '<span class="weui_cell_desc">'+ fields[val.key] +'</span></div>'
+												}									
+											})
+										}
+									})
+								}
+							});
+						}
+					});
+				}
+			});
+			$('#enroll_infos').append(_html);	
+		
+        },
+        error: function(res) {
+            H.tips("网络有点卡");
+        }
+    });
+	
+	//赛事入场验证检测
+	$.get(baseURL + 'event/interface/event_sign_check',{'event_enroll_id':event_enroll_id},function(data){
+		data.data.check ? $('#verification').html('已验证') : $('#verification').html('未验证');
+	},'json');
+ 
+	
+});
+</script>
+
+<script type="text/javascript" src="../../dist/js/province.js"></script>
+<script type="text/javascript" src="../../dist/js/region.js"></script>
+<script type="text/javascript" src="../../dist/js/city.js"></script>
+</body>
+</html>
