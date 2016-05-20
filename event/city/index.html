@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>活力圈</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="format-detection" content="telephone=no"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="distribution" content="global" />
+<meta name="author" content="活力圈" />
+<meta name="webcrawlers" content="all" />
+<link rel="stylesheet" type="text/css" href="../dist/css/hlq.min.css">
+<script type="text/javascript" src="../dist/js/zepto.min.js"></script>
+<script type="text/javascript" src="../dist/js/base.js"></script>
+<script type="text/javascript" src="../dist/js/city.js"></script>
+<style type="text/css">
+#current{padding: 10px; color: #999;}
+</style>
+</head>
+<body>
+<header class="header">
+    <div class="bnt-back" onclick="history.back()"><i class="icon-back"></i></div>
+    <h1>选择城市</h1>
+</header>
+<div class="main">
+  <input type="hidden" id="city_id" value="0">
+  <div class="list-group">
+    <div class="list-group-item">
+      GPS定位城市 <span class="pull-right text-muted">微信SDK调接口</span>
+    </div>
+  </div>
+  <ul id="cityList" class="list-group mt">
+    
+  </ul>
+  <p class="bdline" style="border: 0px;padding:10px;text-align: center; color: #999;">更多城市即将开放..</p>
+</div>
+
+<script type="text/javascript">
+var city_list =""
+var city_id = H.getItem('city_id') || 0;
+$.ajax({
+    url: baseURL + "event/view/region",
+    data: {
+        city_id:city_id
+    },
+    type: 'get',
+    dataType: 'json',
+    success : function(data){
+        $.each(data.data, function(index, item){
+            if(item.id == city_id){
+                city_list = '<li data-city="'+ item.id +'" class="list-group-item city-sele">'+ item.name +'</li>';
+            }else{
+                city_list = '<li data-city="'+ item.id +'" class="list-group-item">'+ item.name +'</li>';
+            }
+            $("#cityList").append(city_list);
+        })        
+    },
+    error : function(res){
+        H.tips("网络有点卡");
+    }
+});
+
+//浏览器定位
+if (navigator.geolocation){
+    var getOptions = {
+        //是否使用高精度设备，如GPS。默认是true
+        enableHighAccuracy:false,
+        //超时时间，单位毫秒，默认为0
+        timeout:6000,
+        //使用设置时间内的缓存数据，单位毫秒
+        //默认为0，即始终请求新数据
+        //如设为Infinity，则始终使用缓存数据
+        maximumAge:0
+    };
+    navigator.geolocation.getCurrentPosition(function(position) {  
+    
+          
+    }); 
+}else{
+    //不支持，
+}
+
+//切换城市
+$(document).on('click', '#cityList li', function(e){
+    H.setItem("city_id",$(this).data('city'));
+    H.setItem("city_name",$(this).text());
+    location.href = '../list/index.html';
+})
+
+//http://www.cnblogs.com/txw1958/p/weixin-web-location.html
+
+</script>
+</body>
+</html>
