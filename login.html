@@ -11,10 +11,10 @@
 <meta name="distribution" content="global" />
 <meta name="author" content="活力圈" />
 <meta name="webcrawlers" content="all" />
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
 <script src="dist/js/zepto.min.js"></script>
 <script src="dist/js/base.js"></script>
 <script src="dist/js/Base64.js"></script>
-<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
 <!--script src="dist/js/wx_port.js"></script-->
 </head>
 <body>
@@ -24,6 +24,7 @@ window.onload = function(){
 	if(H.isWeixin){	
 		var code = H.getURLVar('code');
 		var source = H.getURLVar('source');
+		var event_id = H.getURLVar('event_id');
 		if(code){
 			//获取微信接口
 			var href = window.location.href;
@@ -36,6 +37,7 @@ window.onload = function(){
 					url:url
 				},
 				dataType: 'json',
+				async: false,//改为同步方式
 				success: function(data){
 					console.log(data);					
 					//通过config接口注入权限验证配置
@@ -48,22 +50,31 @@ window.onload = function(){
 						jsApiList : ["openLocation", "getLocation"] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
 					});
 					
-					wx.ready(function(){				
-
+					wx.ready(function(){			
 						wx.getLocation({
 							type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
 							success: function (res) {
-								var latitude = res.latitude; // 纬度，浮点数，范围为90 ~ -90
-								var longitude = res.longitude; // 经度，浮点数，范围为180 ~ -180。
-								H.setItem("latitude", latitude);
-								H.setItem("longitude", longitude);					
+								H.setItem("latitude", res.latitude);
+								H.setItem("longitude", res.longitude);
+								var locations = [res.longitude,res.latitude].join();
+								$.ajax({
+									type: 'post',
+									url: H.getGeocodingURL,
+									data: {'location':locations},
+									async: false,//改为同步方式
+									dataType: 'json',
+									success:function(response){					
+										var city = response.data.addressComponent.adcode.substring(0,4) + '00';	
+										var cityName = response.data.addressComponent.city;
+										H.setItem("city_id", city);
+										H.setItem("city_name", cityName);
+										H.cityid = city;
+										H.cityname = cityName;						
+									}			
+								});
 							}
 						});
-						
 					});
-				},
-				error: function(res) {
-					H.tips("没有获取到微信接口");
 				}
 			});			
 			
@@ -87,16 +98,21 @@ window.onload = function(){
 					},
 					dataType: 'json',
 					success: function(data){
-						//H.login(data);
+						var curtime = new Date().getTime();
 						H.setItem("session", data.data.session);
 						H.setItem("uid", data.data.uid);
 						H.setItem("device", data.data.device);
-						H.setItem("platform", data.data.platform);
+						H.setItem("platform", data.data.platform);						
+						H.setItem("setTimeExp",curtime);
 						if(source == 'user_event'){
+							console.log(source)
 							window.location.href = "event/user_event.html";
+						}else if(event_id){
+							window.location.href = "event/detail/index.html?event_id=" + event_id	
 						}else{
 							window.location.href = "event/index.html";
-						}						
+						}
+						
 					},
 					error: function(res) {
 						alert(res);

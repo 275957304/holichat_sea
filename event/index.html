@@ -14,10 +14,10 @@
 <link href="../dist/img/ico16.ico" rel="shortcut icon">
 <link href="../dist/img/icon_152.png" sizes=152x152 rel="apple-touch-icon">
 <link rel="stylesheet" type="text/css" href="../dist/css/hlq.min.css">
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
 <script type="text/javascript" src="../dist/js/zepto.min.js"></script>
 <script type="text/javascript" src="../dist/js/base.js"></script>
 <script type="text/javascript" src="../dist/js/dropload.min.js"></script>
-<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
 </head>
 <body>
 
@@ -43,19 +43,13 @@
 $(function(){
     var community_cid = 0,
 		category_id = 0,
-		city_id = H.cityid,
 		status = "",
 		officual = 0,
 		cost = 0,
 		page_size = 10,
 		page = 0,
-		event_type = 0;  
-  
-    if(H.getItem('city_name')){
-		$('.btn-city').text(H.getItem('city_name'))
-	};
-	
-	
+		event_type = 0; 
+	$('.btn-city').html(H.getItem('city_name'));	
     $('.main').dropload({
         scrollArea : window,
         loadDownFn : function(me){
@@ -65,7 +59,7 @@ $(function(){
                 data: {
                     community_cid:community_cid,
                     category_id:category_id,
-                    location_id:city_id,
+                    location_id:H.cityid,
                     status:status,
                     officual:officual,
                     cost:cost,
@@ -75,7 +69,7 @@ $(function(){
                 },
                 dataType: 'json', 
                 success: function(data){
-					H.haslogin(data);
+					H.haslogin(data); 
                     page++;
                     response = data.data.list;
                     var _html = '';
@@ -114,12 +108,13 @@ $(function(){
 		e.preventDefault();
     });
 	
+	
 	//微信分享
 	var href = window.location.href;
 	var url = href.split('#')[0];
 	$.ajax({
 		type: 'get',
-		url: H.wxSignURL,
+		url: baseURL + "other/api/wx_js_sign",
 		data: {
 			appid:'wxcc5c198d146a1779', 
 			url:url
@@ -134,15 +129,16 @@ $(function(){
 				timestamp : data.data.timestamp, // 必填，生成签名的时间戳
 				nonceStr  : data.data.noncestr, // 必填，生成签名的随机串
 				signature : data.data.signature,// 必填，签名，见附录1
-				jsApiList : ["onMenuShareTimeline", "onMenuShareAppMessage", "onMenuShareQQ", "onMenuShareWeibo",] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+				jsApiList : ["onMenuShareTimeline", "onMenuShareAppMessage", "onMenuShareQQ", "onMenuShareWeibo","openLocation", "getLocation"] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
 			});
 			
-			wx.ready(function(){						
+			wx.ready(function(){			
+				
 				// 分享到朋友圈
 				wx.onMenuShareTimeline({
 					title: "活力圈赛事活动", // 分享标题
 					link: "http://m.holichat.com/event/index.html", // 分享链接
-					imgUrl: "http://m.holichat.com/event/dist/img/logo.png", // 分享图标
+					imgUrl: "http://m.holichat.com/dist/img/logo.png", // 分享图标
 					success: function () { 
 						// 用户确认分享后执行的回调函数
 					},
@@ -154,9 +150,9 @@ $(function(){
 				//分享给朋友
 				wx.onMenuShareAppMessage({
 					title: '活力圈赛事活动', // 分享标题
-					desc: '活力圈赛事活动', // 分享描述
+					desc: '海量赛事活动，等你来参加。', // 分享描述
 					link: 'http://m.holichat.com/event/index.html', // 分享链接
-					imgUrl: 'http://m.holichat.com/event/dist/img/logo.png', // 分享图标
+					imgUrl: 'http://m.holichat.com/dist/img/logo.png', // 分享图标
 					type: '', // 分享类型,music、video或link，不填默认为link
 					dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
 					success: function () { 
@@ -169,9 +165,9 @@ $(function(){
 				
 				wx.onMenuShareQQ({
 					title: '活力圈赛事活动', // 分享标题
-					desc: '活力圈赛事活动', // 分享描述
+					desc: '海量赛事活动，等你来参加。', // 分享描述
 					link: 'http://m.holichat.com/event/index.html', // 分享链接
-					imgUrl: 'http://m.holichat.com/event/dist/img/logo.png', // 分享图标
+					imgUrl: 'http://m.holichat.com/dist/img/logo.png', // 分享图标
 					success: function () { 
 					   // 用户确认分享后执行的回调函数
 					},
@@ -182,9 +178,9 @@ $(function(){
 				
 				wx.onMenuShareWeibo({
 					title: '活力圈赛事活动', // 分享标题
-					desc: '活力圈赛事活动', // 分享描述
+					desc: '海量赛事活动，等你来参加。', // 分享描述
 					link: 'http://m.holichat.com/event/index.html', // 分享链接
-					imgUrl: 'http://m.holichat.com/event/dist/img/logo.png', // 分享图标
+					imgUrl: 'http://m.holichat.com/dist/img/logo.png', // 分享图标
 					success: function () { 
 					   // 用户确认分享后执行的回调函数
 					},
@@ -195,9 +191,9 @@ $(function(){
 				
 				wx.onMenuShareQZone({
 					title: '活力圈赛事活动', // 分享标题
-					desc: '活力圈赛事活动', // 分享描述
+					desc: '海量赛事活动，等你来参加。', // 分享描述
 					link: 'http://m.holichat.com/event/index.html', // 分享链接
-					imgUrl: 'http://m.holichat.com/event/dist/img/logo.png', // 分享图标
+					imgUrl: 'http://m.holichat.com/dist/img/logo.png', // 分享图标
 					success: function () { 
 					   // 用户确认分享后执行的回调函数
 					},
@@ -206,13 +202,13 @@ $(function(){
 					}
 				});
 				
+				
 			});
 		}
 	});
-	
+
 	
 })        
- 
 </script>
 </body>
 </html>

@@ -14,6 +14,7 @@
 <link rel="stylesheet" type="text/css" href="../../dist/css/hlq.min.css">
 <script type="text/javascript" src="../../dist/js/zepto.min.js"></script>
 <script type="text/javascript" src="../../dist/js/base.js"></script>
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
 </head>
 <body class="b-white">
 <header class="header">
@@ -34,7 +35,8 @@
     </div>
 </div>
 <script type="text/javascript">
-    var event_id = H.getURLVar('event_id'); 
+$(function(){
+	var event_id = H.getURLVar('event_id'); 
     var event_project_id = H.getURLVar('event_project_id'); 
     var event_group_id = H.getURLVar('event_group_id'); 
     $.ajax({
@@ -63,6 +65,38 @@
     $('#agreeBtn').on('tap',function(){
         window.location.href = 'group_info.html?event_id=' + event_id + "&event_project_id=" + event_project_id + "&event_group_id=" + event_group_id;
     })
+
+
+	//禁用微信分享
+	var href = window.location.href;
+	var url = href.split('#')[0];
+	$.ajax({
+		type: 'get',
+		url: baseURL + "other/api/wx_js_sign",
+		data: {
+			appid:'wxcc5c198d146a1779', 
+			url:url
+		},
+		dataType: 'json',
+		success: function(data){
+			console.log(data);					
+			//通过config接口注入权限验证配置
+			wx.config({
+				debug     : false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+				appId     : "wxcc5c198d146a1779", // 必填，公众号的唯一标识
+				timestamp : data.data.timestamp, // 必填，生成签名的时间戳
+				nonceStr  : data.data.noncestr, // 必填，生成签名的随机串
+				signature : data.data.signature,// 必填，签名，见附录1
+				jsApiList : ["onMenuShareTimeline", "onMenuShareAppMessage", "onMenuShareQQ", "onMenuShareWeibo"] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+			});
+			
+			wx.ready(function(){		
+				wx.hideOptionMenu();
+			});
+		}
+	});
+})
+    
 </script>
 </body>
 </html>

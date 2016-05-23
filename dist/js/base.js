@@ -1,12 +1,16 @@
-var baseURL = "http://121.41.0.124:81/";
-var imgURL = "http://holichat-res-inside.img-cn-hangzhou.aliyuncs.com/uploads/";
+var baseURL = "http://app.holichat.com/";
+var imgURL = "http://img.holichat.com/uploads/";
+var getDay = new Date().getDay();
 var H = {
 	token : false,
-	session : "",
-	openid : "",
-	uid : "",
+	session : null,
+	openid : null,
+	uid : null,
 	cityid : "",
-	loginURL: "../login.html",
+	cityname : "",
+	exp : 3*24*60*60*1000,
+	wxappid : 'wxcc5c198d146a1779',
+	loginURL: "http://m.holichat.com/login.html",  //long
 	eventListURL : baseURL + 'event/view/event_list',     // 赛事列表
 	eventSearchURL: baseURL + 'event/view/event_search',  // 赛事搜索
 	getBriefURL : baseURL + 'event/view/get_brief',       // 赛事简介信息
@@ -19,42 +23,40 @@ var H = {
 	getGeocodingURL : baseURL + 'other/api/get_geocoding',   //逆地理编码
 	wxSignURL : baseURL +'other/api/wx_js_sign',
 	init : function(){
+		if(H.getItem('setTimeExp') == null || (new Date().getTime() - H.getItem("setTimeExp") > H.exp)){
+			H.removeItem("session");
+			H.removeItem("uid");
+			H.setItem("setTimeExp", new Date().getTime())	
+		}		
 		this.session = this.getItem("session");
 		this.uid = this.getItem("uid");
 		this.openid = this.getItem("openid");
 		this.cityid = this.getItem("city_id");
 		H.goTop();
-		//地理位置
-		if(H.getItem('longitude')){
-			var locations = [H.getItem('longitude'),H.getItem('latitude')].join(",");
-			$.post(H.getGeocodingURL,{'location':locations},function(response){
-				var res = JSON.parse(response);
-				var city = res.data.addressComponent.adcode.substring(0,4) + '00';
-				this.cityid = res.data.addressComponent.adcode;
-				H.setItem("city_id", city);
-				H.setItem("city_name", res.data.addressComponent.city);
-			})
-		}
 	},
 	wh : function(){
 		return $(document).height()-100;
 	},
 	login : function(data){
-		/*
-		switch(data.ret){
-			case 6023: return this.tips("手机号码不正确");break;
-			case 6024: return this.tips("密码不正确");break;
-		}
-		*/
 		H.setItem("session", data.data.session);
 		H.setItem("uid", data.data.uid);
 		H.setItem("device", data.data.device);
 		H.setItem("platform", data.data.platform);		
 	},
-	haslogin : function(a){		
-		if(this.uid == null || a.ret == '6050'){
-			setTimeout(function(){H.tips("请登录")},100);
-			setTimeout(function(){window.location.href = "http://m.holichat.com/wx_login.html"},2000);
+	haslogin : function(a){
+		var setval ='';
+		var event_id = H.getURLVar("event_id");
+		if(event_id){
+			setval = H.loginURL + '?event_id=' + event_id;			
+		}else{
+			setval = H.loginURL;
+		}
+		if(this.uid == null || this.session == null || a.ret == '6050'){
+			if(H.isWeixin()){				
+				window.location.href = "https://open.weixin.qq.com/connect/oauth2/authorize?appid=" + H.wxappid + "&redirect_uri=" + encodeURIComponent(setval) + "&response_type=code&scope=snsapi_userinfo#wechat_redirect";
+			}else{				
+				window.location.href = 'http://m.holichat.com/enter_login.html';
+			}
 		}		
 	},
 	loginout : function(){
@@ -193,6 +195,8 @@ var H = {
 };
 H.init();
 window.H=H;
+
+
  
 function httpGet(url, callback) {
     $.get(url, function(data, status, xhr) {

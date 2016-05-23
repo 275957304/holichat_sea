@@ -12,6 +12,7 @@
 <meta name="author" content="活力圈" />
 <meta name="webcrawlers" content="all" />
 <link rel="stylesheet" type="text/css" href="../../dist/css/hlq.min.css">
+<script src="http://res.wx.qq.com/open/js/jweixin-1.0.0.js"></script>
 <script type="text/javascript" src="../../dist/js/zepto.min.js"></script>
 <script type="text/javascript" src="../../dist/js/base.js"></script>
 </head>
@@ -113,7 +114,7 @@ $(function(){
 				if(val.key == 'sex'){
 					template += '<div class="weui_cell weui_cell_select weui_select_after"><div class="weui_cell_hd"><label class="weui_label" for="">'+ val.name +'</label></div><div class="weui_cell_bd weui_cell_primary"><select name="'+ val.key +'" class="weui_select"><option value="男">男</option><option value="女">女</option></select></div></div>';
 						
-				}else if(val.key == 'idcard' || val.key == 'phone'){
+				}else if(val.key == 'phone'){
 					template += '<div class="weui_cell"><div class="weui_cell_hd"><label class="weui_label">'+ val.name +'</label></div><div class="weui_cell_bd weui_cell_primary"><input name="'+ val.key +'" type="number" placeholder="请输入'+ val.name +'" class="weui_input"></div></div>';
 				}else{
 					template += '<div class="weui_cell"><div class="weui_cell_hd"><label class="weui_label">'+ val.name +'</label></div><div class="weui_cell_bd weui_cell_primary"><input name="'+ val.key +'" type="text" field="'+ val.name +'" placeholder="请输入'+ val.name +'" class="weui_input"></div></div>';
@@ -218,7 +219,6 @@ $(function(){
             },
             success: function(data){
 				console.log(data)
-				H.haslogin(data);
 				$('.tips-message').hide();
                 if(data.ret == 6161){
                     H.tips("队伍队名己存在");
@@ -239,6 +239,38 @@ $(function(){
         });
 
     });
+	
+	
+	
+	//禁用微信分享
+	var href = window.location.href;
+	var url = href.split('#')[0];
+	$.ajax({
+		type: 'get',
+		url: baseURL + "other/api/wx_js_sign",
+		data: {
+			appid:'wxcc5c198d146a1779', 
+			url:url
+		},
+		dataType: 'json',
+		success: function(data){
+			console.log(data);					
+			//通过config接口注入权限验证配置
+			wx.config({
+				debug     : false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+				appId     : "wxcc5c198d146a1779", // 必填，公众号的唯一标识
+				timestamp : data.data.timestamp, // 必填，生成签名的时间戳
+				nonceStr  : data.data.noncestr, // 必填，生成签名的随机串
+				signature : data.data.signature,// 必填，签名，见附录1
+				jsApiList : ["onMenuShareTimeline", "onMenuShareAppMessage", "onMenuShareQQ", "onMenuShareWeibo"] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
+			});
+			
+			wx.ready(function(){		
+				wx.hideOptionMenu();
+			});
+		}
+	});
+	
 });
 </script>
 </body>

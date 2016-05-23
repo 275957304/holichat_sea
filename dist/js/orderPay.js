@@ -101,6 +101,8 @@ $(function(){
 						}
 					});	
 					
+					wx.hideOptionMenu();
+					
 				});
 				
 					

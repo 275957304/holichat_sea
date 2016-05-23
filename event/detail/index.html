@@ -19,13 +19,12 @@
 .preview-list img{width: 100px;height:100px;}
 .preview-list a{display: inline-block;background-color: #ccc;}
 .icon-del{background:url(icon-del-img.png) no-repeat;display: inline-block;width:20px;height: 20px;background-size: 20px 20px;position: absolute;left: 50%;top:.5rem;z-index: 3;}
-
 #layImg{position:fixed; width:100%; height:100%; z-index:999; top:0; left:0;}
 </style>
 </head>
 <body>
 <header class="header">
-    <div class="bnt-back" onclick="history.back()"><i class="icon-back"></i></div>
+    <div class="bnt-back"><i class="icon-back"></i></div>
     <h1>赛事活动</h1>
 </header>
 <footer class="footer"></footer>
@@ -60,9 +59,11 @@
 $(function(){	
     var event_id = H.getURLVar('event_id');
     var detoff = true;
+	var address ="";
+	var currentLoaction;
 	var title ="";
-	var link = window.location.href;
-	var desc = '';
+	var shareLink = window.location.href;
+	var sharDesc = '';
 	var shareImg = '';
     var tab = new tabs.Scroll('.tab', {role: 'tab'});
         tab.on('beforeScrollStart',function(formIndex,toIndex){
@@ -83,13 +84,14 @@ $(function(){
             },           
             success: function(data){
 				H.haslogin(data);
+				if(!data.data.status) return;
 				$('.tips').hide();      
 				var status = data.data.status.toLocaleUpperCase();
 				var info = JSON.parse(data.data.other_info);
+				address = data.data.address;
 				title = data.data.title;
-				desc = data.data.about;
-				shareImg = imgURL + data.data.logo_image;
-				
+				sharDesc = data.data.about;
+				shareImg = imgURL + data.data.logo_image;				
 				setCurrentState(data.data.signline, data.data.deadline, data.data.begin_date, data.data.end_date);							
 				var _html = '<div class="weui_panel weui_panel_access"><div class="weui_media_box weui_media_appmsg bb list">' +
 							'<div class="weui_media_hd">' +
@@ -132,7 +134,7 @@ $(function(){
                     }
 					
 					if(data.data.address){
-                        _html += '<div class="weui_media_box weui_media_text p10"><h4 class="weui_media_title">地点</h4> <p class="weui_media_desc">' + H.getAddress(data.data.region_id)  + data.data.address + '</p></div>';
+                        _html += '<div id="map" data-map="'+ data.data.amap_coor +'" class="weui_media_box weui_media_text p10"><h4 class="weui_media_title">地点</h4> <p class="weui_media_desc">' + H.getAddress(data.data.region_id)  + data.data.address + '</p></div>';
                     }					
 
 					
@@ -208,55 +210,71 @@ $(function(){
 			}else{
 				$('.footer').append('<a class="weui_btn weui_btn_disabled weui_btn_default" onclick="H.tips(\'报名已结束\')" href="javascript:void(0)">报名已结束</a>');
 			}	
-        };    
-});
+        }; 
 
+		//地理位置
+		$('#synopsis').on('click','#map',function(){
+			var amap = $(this).data('map');
+			var isMap = amap.split(",");
+			if(isMap[0] == 0 || isMap[1] == 0){				
+				H.tips("暂无地址定位数据");
+			}else{
+				window.location.href = "http://m.amap.com/navi/?start="+ currentLoaction.longitude +"," + currentLoaction.latitude + "&dest=" + amap +"&destName="+ address +"&key=faaddee69a0a4d1dca3576d2ae9c2ff6"
+			}
+		})
 
-
-
-
-//获取微信接口
-var href = window.location.href;
-var url = href.split('#')[0];
-$.ajax({
-	type: 'get',
-	url: baseURL + "other/api/wx_js_sign",
-	data: {
-		appid:'wxcc5c198d146a1779', 
-		url:url
-	},
-	dataType: 'json',
-	success: function(data){
-		console.log(data);					
-		//通过config接口注入权限验证配置
-		wx.config({
-			debug     : false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
-			appId     : "wxcc5c198d146a1779", // 必填，公众号的唯一标识
-			timestamp : data.data.timestamp, // 必填，生成签名的时间戳
-			nonceStr  : data.data.noncestr, // 必填，生成签名的随机串
-			signature : data.data.signature,// 必填，签名，见附录1
-			jsApiList : ["onMenuShareTimeline", "onMenuShareAppMessage", "onMenuShareQQ", "onMenuShareWeibo"] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
-		});
-		
-		wx.ready(function(){
-			// 分享到朋友圈
-			wx.onMenuShareTimeline({
-				title: title, // 分享标题
-				link: link, // 分享链接
-				imgUrl: shareImg, // 分享图标
-				success: function () { 
-					// 用户确认分享后执行的回调函数
-					shareBack('timeline');
-				},
-				cancel: function () { 
-					// 用户取消分享后执行的回调函数
-				}
+	//微信分享
+	
+	//微信分享
+	var href = window.location.href;
+	var url = href.split('#')[0];
+	$.ajax({
+		type: 'get',
+		url: baseURL + "other/api/wx_js_sign",
+		data: {
+			appid:'wxcc5c198d146a1779', 
+			url:url
+		},
+		dataType: 'json',
+		success: function(data){
+				
+			//通过config接口注入权限验证配置
+			wx.config({
+				debug     : false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+				appId     : "wxcc5c198d146a1779", // 必填，公众号的唯一标识
+				timestamp : data.data.timestamp, // 必填，生成签名的时间戳
+				nonceStr  : data.data.noncestr, // 必填，生成签名的随机串
+				signature : data.data.signature,// 必填，签名，见附录1
+				jsApiList : ["onMenuShareTimeline", "onMenuShareAppMessage", "onMenuShareQQ", "onMenuShareWeibo", "getLocation"] // 必填，需要使用的JS接口列表，所有JS接口列表见附录2
 			});
-
-			wx.onMenuShareAppMessage({
+			
+			wx.ready(function(){
+			
+				wx.getLocation({
+					type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
+					success: function (res) {
+						currentLoaction = res;
+					}
+				});
+			
+				// 分享到朋友圈
+				wx.onMenuShareTimeline({
 					title: title, // 分享标题
-					desc: desc, // 分享描述
-					link: link, // 分享链接
+					link: shareLink, // 分享链接
+					imgUrl:shareImg, // 分享图标
+					success: function () { 
+						// 用户确认分享后执行的回调函数
+					},
+					cancel: function () { 
+						// 用户取消分享后执行的回调函数
+					}
+				});
+				
+				//分享给朋友
+				wx.onMenuShareAppMessage({
+					title: title, // 分享标题
+					desc: sharDesc, // 分享描述
+					link: shareLink, // 分享链接
 					imgUrl: shareImg, // 分享图标
 					type: '', // 分享类型,music、video或link，不填默认为link
 					dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
@@ -267,12 +285,11 @@ $.ajax({
 						// 用户取消分享后执行的回调函数
 					}
 				});
-
-
+				
 				wx.onMenuShareQQ({
 					title: title, // 分享标题
-					desc: desc, // 分享描述
-					link: link, // 分享链接
+					desc: sharDesc, // 分享描述
+					link: shareLink, // 分享链接
 					imgUrl: shareImg, // 分享图标
 					success: function () { 
 					   // 用户确认分享后执行的回调函数
@@ -281,27 +298,11 @@ $.ajax({
 					   // 用户取消分享后执行的回调函数
 					}
 				});
-
-
-
+				
 				wx.onMenuShareWeibo({
 					title: title, // 分享标题
-					desc: desc, // 分享描述
-					link: '', // 分享链接
-					imgUrl: '', // 分享图标
-					success: function () { 
-					   // 用户确认分享后执行的回调函数
-					},
-					cancel: function () { 
-						// 用户取消分享后执行的回调函数
-					}
-				});
-
-
-				wx.onMenuShareQZone({
-					title: title, // 分享标题
-					desc: desc, // 分享描述
-					link: link, // 分享链接
+					desc: sharDesc, // 分享描述
+					link: shareLink, // 分享链接
 					imgUrl: shareImg, // 分享图标
 					success: function () { 
 					   // 用户确认分享后执行的回调函数
@@ -310,15 +311,31 @@ $.ajax({
 						// 用户取消分享后执行的回调函数
 					}
 				});
-
+				
+				wx.onMenuShareQZone({
+					title: title, // 分享标题
+					desc: sharDesc, // 分享描述
+					link: shareLink, // 分享链接
+					imgUrl: shareImg, // 分享图标
+					success: function () { 
+					   // 用户确认分享后执行的回调函数
+					},
+					cancel: function () { 
+						// 用户取消分享后执行的回调函数
+					}
+				});
+				
+				
 			});
+		}
+	});
+
+	$('.bnt-back').on('click',function(){
+		window.location.href = "http://m.holichat.com/event/index.html";
+	})
 		
-	},
-	error: function(res) {
-		H.tips("没有获取到微信接口");
-	}
 });
-	
+
 
 </script>
 

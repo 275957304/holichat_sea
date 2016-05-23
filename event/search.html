@@ -65,6 +65,7 @@ $(function(){
 				*/
                 dataType: 'json',
                 success: function(data){
+					H.haslogin();
                     page++;
                     response = data.data.list;
                     var _html = '';
