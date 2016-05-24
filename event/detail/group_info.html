@@ -50,12 +50,12 @@ $(function(){
             event_id:event_id
         },
         dataType: 'json',
+		async: false,//改为同步方式
         beforeSend : function(){
             H.tips("加载中...",1);
         },
         success: function(data){
-			//console.log(data)
-			H.haslogin(data);
+			console.log(data)
             $('.tips').hide();       
             $.each(data.data.project,function(index, item){
 				if(project_id == item.id){					
@@ -65,9 +65,11 @@ $(function(){
 							if(val.single_person == 0){
 								var min = val.person_min;
 								var max = val.person_max;
+								console.log(min);
+								console.log(max);
 								var _html ="";
 								_html += '<div class="weui_cell"><div class="weui_cell_hd"><label class="weui_label">队伍队名称</label></div><div class="weui_cell_bd weui_cell_primary"><input name="team_name" type="text" placeholder="请输入队伍队名称" class="weui_input"></div></div>';
-								_html += '<div class="weui_cell weui_cell_select weui_select_after"><div class="weui_cell_hd"><label class="weui_label" for="">队伍人数</label></div><div class="weui_cell_bd weui_cell_primary">'+ setOpaction(min,max) +'</div></div>';
+								_html += '<div class="weui_cell weui_cell_select weui_select_after"><div class="weui_cell_hd"><label class="weui_label" for="">队伍人数</label></div><div id="setionBox" class="weui_cell_bd weui_cell_primary">'+ setOpaction(min,max) +'</div></div>';
 								setTemplate(min,template);								
 								$('body').on('change','#select',function(){
 									var item = document.getElementById('select');
@@ -95,13 +97,18 @@ $(function(){
     });	
 
 	function setOpaction(min,max){
+		var min_num = parseInt(min);		
+		var max_num = parseInt(max);		
 		var i, s="";
 		s = '<select class="weui_select" id="select">';
-		for(i= min; i <= max; i++){
+		for(i= min_num; i <= max_num; i++){
 			s += '<option value="'+ i +'">'+ i +'</option>';
+			console.log(i);
 		}
 		s += '</select>';
-		return s;
+		console.log(max);
+		console.log(s)
+		return s
 	}
 	
 	function setTemplate(num,item){
@@ -253,8 +260,7 @@ $(function(){
 			url:url
 		},
 		dataType: 'json',
-		success: function(data){
-			console.log(data);					
+		success: function(data){				
 			//通过config接口注入权限验证配置
 			wx.config({
 				debug     : false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
