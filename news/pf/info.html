@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>资讯</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="format-detection" content="telephone=no"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="distribution" content="global" />
+<meta name="author" content="活力圈" />
+<meta name="webcrawlers" content="all" />
+<script type="text/javascript" src="../../dist/js/sea.js"></script>
+<script type="text/javascript" src="../../dist/js/sea_config.js"></script>
+<style type="text/css">
+body{margin:0;padding:0;font-family: Helvetica Neue,Helvetica,Arial,sans-serif;}
+.article-top{border-bottom:1px solid #d1d1d1; padding:10px;}
+.article-top .title{font-size:16px; color:#040404; text-align: justify; margin:0;}
+.article-top .article-desc{margin:5px 0 0 0; font-size:14px; color:#7e7e7e;}
+.article-top .article-desc #source{margin-left:15px; color:#55769f;}
+#main{padding:10px;}
+#main img{max-width:100%;}
+#main p{display:block; margin:0; text-align: justify;}
+</style>
+</head>
+<body>
+<div class="main-content">
+</div>
+<script type="text/javascript">
+var requireFun = ['zepto','base'];
+seajs.use(requireFun, function(zepto,base){
+	var get_id = base.getURLVar('id');
+	var get_type = base.getURLVar('type');
+	var get_source = window.location.search.substr(1).split('&')[2];
+	var setUrl = '';
+	switch(get_type){
+		case 'pf' : setUrl = 'http://192.168.1.234/server4.0/index.php/news/pf/info' ; break;
+		case 'star' : setUrl = 'http://192.168.1.234/server4.0/index.php/news/star/info' ; break;
+		case 'community' : setUrl = 'http://192.168.1.234/server4.0/index.php/news/community/info' ; break;
+	};
+	$('#source').html(decodeURIComponent(get_source.split('=')[1]));
+    $.ajax({
+        type: 'get',
+        //url: newsPfInfo,
+        url: setUrl,
+        data:{id:get_id},
+        dataType: 'json',
+        success: function(data){
+			if(data.data){
+				var html = '<div class="article-top">'  +
+							'<h2 class="title">' + data.data.title + '</h2>' +
+							'<p class="article-desc"><span id="time">'+ data.data.create_time.substr(0,10) +'</span><span id="source">'+ decodeURIComponent(get_source.split('=')[1]) +'</span></p>'+
+						'</div>' +
+						'<div id="main" class="article">'+ data.data.content +'</div>';
+				$('.main-content').append(html);
+				resizeIframe();
+			}else{
+				base.tips('没有内容!');
+				setTimeout(function(){
+					history.back();
+				},2000);
+			}
+        },
+        error: function(xhr, type) {
+            base.tips("网络错误");
+        }
+    });
+
+	//优酷视频缩放
+	function resizeIframe(){
+		var bodyw = document.body.clientWidth - 20;
+		for(var i=0; i < document.getElementsByTagName("iframe").length; i++){
+			var scale = Math.min(bodyw/document.getElementsByTagName("iframe")[i].width, 1);
+			document.getElementsByTagName("iframe")[i].style.width = parseInt(document.getElementsByTagName("iframe")[i].width * scale) + 'px';
+			document.getElementsByTagName("iframe")[i].style.height = parseInt(document.getElementsByTagName("iframe")[i].height * scale) + 'px';
+		}
+	}
+})
+
+</script>
+</body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>活力圈</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="format-detection" content="telephone=no"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="distribution" content="global" />
+<meta name="author" content="活力圈" />
+<meta name="webcrawlers" content="all" />
+<link href="../dist/img/ico16.ico" rel="shortcut icon">
+<link rel="stylesheet" type="text/css" href="dist/css/hlq.min.css">
+<script type="text/javascript" src="dist/js/sea.js"></script>
+<script type="text/javascript" src="dist/js/sea_config.js"></script>
+<style media="screen">
+	.entry_container{padding:10px 0;}
+	.entry_list{display:-webkit-box;display:-webkit-flex;display:-ms-flexbox;display:flex -webkit-box-align: center; -webkit-box-pack: center;}
+	.entry_list li{-webkit-box-flex:1;-webkit-flex:1;-ms-flex:1;flex:1; text-align:center;}
+	.entry_list li img{display: block; margin: 0 auto 5px; width: 50px;}
+	.entry_list li span{color:#69686C;}
+</style>
+</head>
+<body>
+<header class="header">
+	<a href="login/city.html" class="btn_city"></a>
+	<h1>推荐</h1>
+	<a class="bnt_right" href="index.html"><span class="icon_home"></span></a>
+</header>
+<div class="main">
+	<section style="border-top:none" class="recommend">
+		<div id="recommendBox">
+		</div>
+	</section>
+</div>
+
+<script type="text/javascript">
+var requireFun = ['zepto/zepto.min','base/base','address/address','login/login','appDown/app-banner','category/category','dropload'];
+seajs.use(requireFun, function(zepto,base,add,login,app,sort){
+	$(function(){
+		var city_name =  base.getItem('city_name')
+			page_size = 10,
+			page = 1;
+		$('.btn_city').text(city_name);
+
+		//推荐内容加载
+		$('.main').dropload({
+			scrollArea : window,
+			loadDownFn : function(me){
+				$.ajax({
+                    type: 'GET',
+                    url: base.recommend,
+					data: {
+						page:page,
+						page_size:page_size
+					},
+                    dataType: 'json',
+                    success: function(data){
+						page++;
+						response = data.data.list;
+						var result = '';
+						if(data.data.list.length < 1){
+							me.lock();
+							me.noData();
+						};
+						for(var i = 0; i < response.length; i++){
+							var action = JSON.parse(data.data.list[i].action);
+							//只加载赛事/活动/培训
+							if(action.type == 'event' || action.type == 'activity' || action.type == 'training'){
+								var detail = base.getItemInfo(action.type,action.data.id);
+								var sort_name = sort.getData(detail.category_id);
+								result += '<a class="rec_link weui_media_box" href="'+ detail.href +'">';
+								result += '<div class="rec_img"><img src="'+ base.imgURL + data.data.list[i].image +'">'+ detail.status +'</div>';
+								result += '<div class="text_box"><h3 class="weui_media_title">'+ data.data.list[i].title +'</h3>';
+								result += '<div class="rec_txt"><span class="price">¥'+ parseFloat(detail.price,10) +'起</span><span class="tip">'+ sort_name.name +'</span></div>';
+								result += '</div>';
+								result += '</a>';
+							}
+						}
+						$('#recommendBox').append(result);
+						me.resetload();
+                    },
+                    error: function(xhr, type){
+                        base.tips(xhr);
+                        // 即使加载出错，也得重置
+                        me.resetload();
+                    }
+                });
+
+			}
+		});
+
+	})
+});
+</script>
+</body>
+</html>

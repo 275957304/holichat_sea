@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>赛事</title>
+<title>活动</title>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1, maximum-scale=1, user-scalable=no" />
@@ -21,13 +21,13 @@
 <body>
 <header class="header">
 	<a class="bnt-back" href="../index.html"><i class="icon-back"></i></a>
-	<h1>赛事</h1>
+	<h1>活动</h1>
 	<a class="bnt_right" href="../index.html"><span class="icon_home"></span></a>
 </header>
 <div class="main">
 	<div class="search_fixed">
 		<div class="searchbar">
-			<input type="search" id="keyword" placeholder="搜索赛事活动" class="form-control" value="">
+			<input type="search" id="keyword" placeholder="搜索培训" class="form-control" value="">
 			<a class="button" id="search_button" href="javascript:void(0)" target="_self" title=""></a>
 		</div>
 	</div>
@@ -42,7 +42,7 @@ var requireFun = ['zepto','base','login','dropload','address',"jweixin",'appDown
 seajs.use(requireFun, function(zepto,base,login,dropload,add,wx){
 	$(function(){
 		add.getProvince(); //选择城市
-		console.log(base.getItem('uid'));
+		console.log(base.getItem('session'));
 		var community_cid = 0,
 			category_id = 0,
 			status = "",
@@ -50,15 +50,14 @@ seajs.use(requireFun, function(zepto,base,login,dropload,add,wx){
 			cost = 0,
 			page_size = 10,
 			page = 1,
-			event_type = 0,
+			activity_type = 0,
 			location_id = base.getItem('city_id');
-		console.log(location_id);
 	    $('.main').dropload({
 	        scrollArea : window,
 	        loadDownFn : function(me){
 	            $.ajax({
 	                type: 'GET',
-	                url: base.eventList,
+	                url: base.activityList,
 	                data: {
 	                    community_cid:community_cid,
 	                    category_id:category_id,
@@ -68,14 +67,11 @@ seajs.use(requireFun, function(zepto,base,login,dropload,add,wx){
 	                    cost:cost,
 	                    page_size:page_size,
 	                    page:page,
-	                    event_type:event_type
+	                    activity_type:activity_type
 	                },
 	                dataType: 'json',
 	                success: function(data){
-						//$('.tips').hide();
 	                    page++;
-						console.log(data);
-						console.log(page);
 	                    response = data.data.list;
 	                    var _html = '';
 	                    if(data.data.list.length < 1){
@@ -83,13 +79,12 @@ seajs.use(requireFun, function(zepto,base,login,dropload,add,wx){
 	                        me.noData();
 	                    };
 	                    for(var i = 0; i < response.length; i++){
-	                        _html +='<a class="weui_media_box weui_media_appmsg list" href="info.html?id='+ response[i].event_id +'&type=event">'
+	                        _html +='<a class="weui_media_box weui_media_appmsg list" href="info.html?id='+ response[i].activity_id +'&type=activity">'
 	                                +'<div class="weui_media_hd"><img alt="" src="' + base.imgURL + response[i].logo_image + '@150h_150w_1e_1c_10-2ci" class="weui_media_appmsg_thumb"></div>'
 	                                +'<div class="weui_media_bd"><h4 class="title">' + response[i].title +' </h4>'
 	                                +'<div class="list_doce"><span class="price">¥<em>' + parseFloat(response[i].cost,10) +'</em>起</span> ' + response[i].name +'</div>'
 	                                +'<div class="list_doce"><p class="pull-right"> ' + base.getCurrentStatus(response[i].signline,response[i].deadline,response[i].begin_date,response[i].end_date) +' </p> <span class="list-city">' + response[i].address +' </span> <span class="list-follow">' + response[i].attention_num +'</span></div></div>'
 	                                +'</a>';
-
 	                    }
 	                    $('#list').append(_html);
 	                    me.resetload();
@@ -115,8 +110,8 @@ seajs.use(requireFun, function(zepto,base,login,dropload,add,wx){
 	wx.ready(function(){
 		// 分享到朋友圈
 		wx.onMenuShareTimeline({
-			title: "活力圈赛事活动", // 分享标题
-			link: "http://m.holichat.com/event/index.html", // 分享链接
+			title: "活力圈培训列表", // 分享标题
+			link: "http://m.holichat.com/activity/index.html?type=activity", // 分享链接
 			imgUrl: "http://m.holichat.com/dist/img/logo.png", // 分享图标
 			success: function () {
 				// 用户确认分享后执行的回调函数
@@ -128,9 +123,9 @@ seajs.use(requireFun, function(zepto,base,login,dropload,add,wx){
 
 		//分享给朋友
 		wx.onMenuShareAppMessage({
-			title: '活力圈赛事活动', // 分享标题
-			desc: '海量赛事活动，等你来参加。', // 分享描述
-			link: 'http://m.holichat.com/event/index.html', // 分享链接
+			title: '活力圈培训列表', // 分享标题
+			desc: '海量培训，等你来参加。', // 分享描述
+			link: 'http://m.holichat.com/activity/index.html?type=activity', // 分享链接
 			imgUrl: 'http://m.holichat.com/dist/img/logo.png', // 分享图标
 			type: '', // 分享类型,music、video或link，不填默认为link
 			dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
@@ -143,9 +138,9 @@ seajs.use(requireFun, function(zepto,base,login,dropload,add,wx){
 		});
 
 		wx.onMenuShareQQ({
-			title: '活力圈赛事活动', // 分享标题
-			desc: '海量赛事活动，等你来参加。', // 分享描述
-			link: 'http://m.holichat.com/event/index.html', // 分享链接
+			title: '活力圈培训列表', // 分享标题
+			desc: '海量培训，等你来参加。', // 分享描述
+			link: 'http://m.holichat.com/activity/index.html?type=activity', // 分享链接
 			imgUrl: 'http://m.holichat.com/dist/img/logo.png', // 分享图标
 			success: function () {
 			   // 用户确认分享后执行的回调函数
@@ -156,9 +151,9 @@ seajs.use(requireFun, function(zepto,base,login,dropload,add,wx){
 		});
 
 		wx.onMenuShareWeibo({
-			title: '活力圈赛事活动', // 分享标题
-			desc: '海量赛事活动，等你来参加。', // 分享描述
-			link: 'http://m.holichat.com/event/index.html', // 分享链接
+			title: '活力圈培训列表', // 分享标题
+			desc: '海量培训，等你来参加。', // 分享描述
+			link: 'http://m.holichat.com/activity/index.html?type=activity', // 分享链接
 			imgUrl: 'http://m.holichat.com/dist/img/logo.png', // 分享图标
 			success: function () {
 			   // 用户确认分享后执行的回调函数
@@ -169,9 +164,9 @@ seajs.use(requireFun, function(zepto,base,login,dropload,add,wx){
 		});
 
 		wx.onMenuShareQZone({
-			title: '活力圈赛事活动', // 分享标题
-			desc: '海量赛事活动，等你来参加。', // 分享描述
-			link: 'http://m.holichat.com/event/index.html', // 分享链接
+			title: '活力圈培训列表', // 分享标题
+			desc: '海量培训，等你来参加。', // 分享描述
+			link: 'http://m.holichat.com/activity/index.html?type=activity', // 分享链接
 			imgUrl: 'http://m.holichat.com/dist/img/logo.png', // 分享图标
 			success: function () {
 			   // 用户确认分享后执行的回调函数

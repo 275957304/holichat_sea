@@ -14,22 +14,14 @@
 </head>
 <body>
 <script type="text/javascript">
-	function getUrlParam(name){
-		var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
-		var r = window.location.search.substr(1).match(reg);
-		if (r != null) return unescape(r[2]); return null;
-	};
-	var setUrl='';
-	var source = getUrlParam('source');
-	var event_id = getUrlParam('event_id');
-	if(source){
-		setUrl = '?source=' + source
-	}
-	if(event_id){
-		setUrl = '?event_id=' + event_id
-	}
-	window.location.href= "https://open.weixin.qq.com/connect/oauth2/authorize?appid=wxcc5c198d146a1779&redirect_uri=" + encodeURIComponent("login/login.html?" + setUrl ) + "&response_type=code&scope=snsapi_userinfo#wechat_redirect";
+function getUrlParam(name){
+	var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+	var r = window.location.search.substr(1).match(reg);
+	if (r != null) return unescape(r[2]); return null;
+}
+var type = getUrlParam('type');
+var enroll_id = getUrlParam('enroll_id');
+window.location.href = "../"+ type +"/order_info.html?enroll_id=" + enroll_id
 </script>
-</div>
 </body>
 </html>

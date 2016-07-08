@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>培训简介信息</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="format-detection" content="telephone=no"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="distribution" content="global" />
+<meta name="author" content="活力圈" />
+<meta name="webcrawlers" content="all" />
+<link href="../dist/img/ico16.ico" rel="shortcut icon">
+<link rel="stylesheet" type="text/css" href="../dist/css/hlq.min.css">
+<script type="text/javascript" src="../dist/js/sea.js"></script>
+<script type="text/javascript" src="../dist/js/sea_config.js"></script>
+<style>
+.preview-list img{width: 100px;height:100px;}
+.preview-list a{display: inline-block;background-color: #ccc;}
+.icon-del{background:url(icon-del-img.png) no-repeat;display: inline-block;width:20px;height: 20px;background-size: 20px 20px;position: absolute;left: 50%;top:.5rem;z-index: 3;}
+#layImg{position:fixed; width:100%; height:100%; z-index:999; top:0; left:0;}
+</style>
+</head>
+<body>
+<header class="header">
+    <a href="index.html?type=training" class="bnt-back"><i class="icon-back"></i></a>
+    <h1>培训信息</h1>
+	<a class="bnt_right" href="../index.html"><span class="icon_home"></span></a>
+</header>
+<footer class="footer"></footer>
+<div class="main">
+	<div class="panel">
+		<div class="tab tab_fixed">
+			<ul class="tab-nav">
+				<li class="current">简介</li>
+				<li>详情</li>
+			</ul>
+			<ul class="tab-content">
+				<li class="tab-item">
+					<div id="synopsis" class="weui_panel_bd">
+
+					</div>
+				</li>
+				<li class="tab-item">
+					<div id="getInfo" class="article">
+
+					</div>
+				</li>
+			</ul>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+var requireFun = ['zepto','base','login','tab','address','jweixin'];
+seajs.use(requireFun,function(zepto,base,login,tab,add,wx){
+var id = base.getURLVar('id');
+var detoff = true;
+var address ="";
+var currentLoaction = {};
+var title ="";
+var shareLink = window.location.href;
+var sharDesc = '';
+var shareImg = '';
+var tab = new tabs.Scroll('.tab', {role: 'tab'});
+    tab.on('beforeScrollStart',function(formIndex,toIndex){
+        if(toIndex == 1 && detoff){
+            getInfo(id);
+        }
+    });
+
+    $.ajax({
+        url: base.trainingBrief,
+		data:{
+			training_id : id
+		},
+        type: 'get',
+        dataType: 'json',
+        beforeSend : function(){
+            base.tips("加载中...",1);
+        },
+        success: function(data){
+            console.log(data);
+            $('.tips').hide();
+            if(!data.data){
+                base.tips('没有赛事出错!')
+                setTimeout(function(){
+                    location.href = 'index.html';
+                },1000)
+            };
+			if(!data.data.status) return;
+			var status = data.data.status.toLocaleUpperCase();
+			var info = JSON.parse(data.data.other_info);
+			address = data.data.address;
+			title = data.data.title;
+			sharDesc = data.data.about;
+			shareImg = base.imgURL + data.data.logo_image;
+			base.setCurrentState(data.data.signline, data.data.deadline, data.data.begin_date, data.data.end_date,id);
+
+			var _html = '<div class="weui_panel weui_panel_access"><div class="weui_media_box weui_media_appmsg bb list">' +
+						'<div class="weui_media_hd">' +
+							'<img alt="" src="' + base.imgURL + data.data.logo_image + '@150h_150w_1e_1c_10-2ci" class="weui_media_appmsg_thumb">' +
+						'</div>' +
+						'<div class="weui_media_bd">' +
+							'<h4 class="title">' + data.data.title + '</h4>' +
+							'<p class="weui_media_desc"><span class="about-follow">' + data.data.attention_num + '</span> <span class="text-danger">¥ ' + parseFloat(data.data.cost,10) + ' 元起</span></p>' +
+							'<p class="weui_media_desc">' + base.getCurrentStatus(data.data.signline,data.data.deadline,data.data.begin_date,data.data.end_date) + '</p>' +
+						'</div>' +
+					'</div></div>'+
+					'<div class="weui_panel"> <div class="weui_article p10"><h4 class="weui_media_title about-icon">简介</h4><div class="weui_media_desc"> ' + base.textEnter(data.data.about) + ' </div></div></div>' +
+					'<div class="weui_panel weui_panel_access">';
+
+                if(info){
+					_html +=  '<div class="weui_media_box weui_media_text p10"><h4 class="weui_media_title host-icon">组织方</h4>';
+					if(info.organizer){
+						_html +=  '<p class="weui_media_desc">主办单位： ' + info.organizer + '</p>';
+					}
+					if(info.contractor){
+						_html +=  '<p class="weui_media_desc">承办单位： ' + info.contractor + '</p>';
+					}
+
+					if(info.co_organizer){
+						_html +=  '<p class="weui_media_desc">协办单位： ' + info.co_organizer + '</p>';
+					}
+
+					if(info.sponsor){
+						_html +=  '<p class="weui_media_desc">赞助单位： ' + info.sponsor + '</p>';
+					}
+					_html += '</div>';
+                };
+
+                if(data.data.begin_date){
+                    _html += '<div class="weui_media_box weui_media_text p10"><h4 class="weui_media_title time-icon">时间</h4> <p class="weui_media_desc">报名时间：' + data.data.signline + ' -- ' + data.data.deadline + '</p>';
+
+					if(data.data.begin_date){
+						_html +=  '<p class="weui_media_desc">比赛时间： ' + data.data.begin_date.substring(0,10) + ' -- ' + data.data.end_date.substring(0,10) + '</p>';
+					}
+
+					_html += '</div>';
+                }
+
+				if(data.data.address){
+                    _html += '<div id="map" data-map="'+ data.data.amap_coor +'" class="weui_media_box weui_media_text p10"><h4 class="weui_media_title site-icon">地点</h4> <p class="weui_media_desc">' +  add.getAddress(data.data.region_id) + data.data.address + '</p></div>';
+                }
+
+                if(info){
+                    _html += '<div class="weui_media_box weui_media_text p10"><h4 class="weui_media_title advisory-icon">咨询</h4>';
+					if(info.contact_name){
+						_html +=  '<p class="weui_media_desc">联系人： ' + info.contact_name + '</p>';
+					}
+
+					if(info.contact_tel){
+						_html +=  '<p class="weui_media_desc">联系电话：<a style="color: #999;" href="tel:'+ info.contact_tel +'">' + info.contact_tel + '</a></p>';
+					}
+
+					if(info.contact_wx){
+						_html +=  '<p class="weui_media_desc">微信账号： ' + info.contact_wx + '</p>';
+					}
+
+					if(info.contact_mail){
+						_html +=  '<p class="weui_media_desc">邮箱地址： ' + info.contact_mail + '</p>';
+					}
+
+					_html += '</div>';
+				}
+
+                _html +='</div>';
+            ;
+            $("#synopsis").append(_html);
+
+
+        },
+        error: function(res){
+            a.tips("网络有点卡");
+        }
+    });
+
+	function getInfo(id){
+		detoff = false;
+		$.ajax({
+			url: base.trainingInfo + '?training_id=' + id,
+			type: 'get',
+			dataType: 'json',
+			beforeSend : function(){
+				base.tips("加载中...",1);
+			},
+			success: function(data){
+                $('.tips').hide();
+				$('.tips-message').hide();
+				$('#getInfo').html(data.data.content);
+                $('#getInfo').find('img').removeAttr("style");
+			},
+			error: function(res){
+				base.tips("网络有点卡");
+			}
+		})
+	};
+
+    //地理位置
+    $('#synopsis').on('click','#map',function(){
+		var amap = $(this).data('map'),startMap = "";
+        if(currentLoaction.hasOwnProperty('longitude')){
+            startMap = '' + currentLoaction.longitude + ',' + currentLoaction.latitude;
+        }
+        base.amapRoute(startMap,amap,address);
+	});
+
+    console.log(wx);
+
+	//微信分享
+    wx.ready(function(){
+        wx.getLocation({
+            type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
+            success: function (res) {
+                currentLoaction = res;
+            }
+        });
+        // 分享到朋友圈
+        wx.onMenuShareTimeline({
+            title: title, // 分享标题
+            link: shareLink, // 分享链接
+            imgUrl:shareImg, // 分享图标
+            success: function () {
+                // 用户确认分享后执行的回调函数
+            },
+            cancel: function () {
+                // 用户取消分享后执行的回调函数
+            }
+        });
+        //分享给朋友
+        wx.onMenuShareAppMessage({
+            title: title, // 分享标题
+            desc: sharDesc, // 分享描述
+            link: shareLink, // 分享链接
+            imgUrl: shareImg, // 分享图标
+            type: '', // 分享类型,music、video或link，不填默认为link
+            dataUrl: '', // 如果type是music或video，则要提供数据链接，默认为空
+            success: function () {
+                // 用户确认分享后执行的回调函数
+            },
+            cancel: function () {
+                // 用户取消分享后执行的回调函数
+            }
+        });
+
+        wx.onMenuShareQQ({
+            title: title, // 分享标题
+            desc: sharDesc, // 分享描述
+            link: shareLink, // 分享链接
+            imgUrl: shareImg, // 分享图标
+            success: function () {
+               // 用户确认分享后执行的回调函数
+            },
+            cancel: function () {
+               // 用户取消分享后执行的回调函数
+            }
+        });
+
+        wx.onMenuShareWeibo({
+            title: title, // 分享标题
+            desc: sharDesc, // 分享描述
+            link: shareLink, // 分享链接
+            imgUrl: shareImg, // 分享图标
+            success: function () {
+               // 用户确认分享后执行的回调函数
+            },
+            cancel: function () {
+                // 用户取消分享后执行的回调函数
+            }
+        });
+
+        wx.onMenuShareQZone({
+            title: title, // 分享标题
+            desc: sharDesc, // 分享描述
+            link: shareLink, // 分享链接
+            imgUrl: shareImg, // 分享图标
+            success: function () {
+               // 用户确认分享后执行的回调函数
+            },
+            cancel: function () {
+                // 用户取消分享后执行的回调函数
+            }
+        });
+    });
+
+
+});
+</script>
+</body>
+</html>

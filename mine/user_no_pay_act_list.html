@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>我的赛事活动</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="format-detection" content="telephone=no"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="distribution" content="global" />
+<meta name="author" content="活力圈" />
+<meta name="webcrawlers" content="all" />
+<link href="../dist/img/ico16.ico" rel="shortcut icon">
+<link rel="stylesheet" type="text/css" href="../dist/css/hlq.min.css">
+<script type="text/javascript" src="../dist/js/sea.js"></script>
+<script type="text/javascript" src="../dist/js/sea_config.js"></script>
+</head>
+<style>
+	.tab-nav li a{display:block;color: #777;}
+	.tab-nav li.current a{color:#f6443a;}
+	.weui_panel_bd .list .priceGary{color:#ccc;}
+</style>
+<body>
+<header class="header">
+    <a class="bnt-back" href="../index.html"><span class="icon-back"></span></a>
+    <h1>未支付</h1>
+</header>
+<div class="main">
+	<div class="panel">
+		<div class="tab tab_fixed">
+			<ul class="tab-nav">
+				<li><a href="user_act_list.html">已报名</a></li>
+				<li class="current">未支付</li>
+			</ul>
+			<ul id="list" class="weui_panel_bd"></ul>
+		</div>
+	</div>
+</div>
+<div id="back_top"></div>
+<script type="text/javascript">
+var requireFun = ['zepto','base','login','dropload','jweixin'];
+seajs.use(requireFun, function(zepto,base,login){
+	var session = base.getItem('session'),
+		page = 1,
+		page_size = 10;
+	console.log(base.getItem('session'));
+
+	$('.main').dropload({
+		scrollArea : window,
+		loadDownFn : function(me){
+			$.ajax({
+				type: 'GET',
+				url: base.userNoPayList,
+				data: {
+					page_size:page_size,
+					page:page,
+					session: session
+				},
+				dataType: 'json',
+				success: function(data){
+					page++;
+					response = data.data.list;
+					console.log(response);
+					var _html = '';
+					if(data.data.list.length < 1){
+						me.lock();
+						me.noData();
+					}
+					$('#list').append(_html);
+					for(var i = 0; i < response.length; i++){
+						var getInfo = base.proGroupInfo(response[i].enroll_type,response[i].project_id,response[i].group_id);
+						var orderInfo = JSON.stringify({
+							amount : response[i].amount,
+							enroll_id : response[i].enroll_id,
+							enroll_type : response[i].enroll_type
+						});
+						//看项目是否以过期
+						var color = 'price';
+						var time = new Date().getTime();
+						var deadline = response[i].deadline;
+						var deadlineDate = deadline.substring(0,10).split('-');
+						deadlineDate = Date.parse(deadlineDate[1] + '/' + deadlineDate[2] + '/' + deadlineDate[0] + ' ' + deadline.substring(10));
+						time > deadlineDate ? color = 'priceGary' : color = 'price';
+					_html +='<li data-inof='+ orderInfo +' data-deadline="'+ deadlineDate +'" class="weui_media_box weui_media_appmsg list">' +
+							'<div class="weui_media_hd"><img alt="" src="' + base.imgURL + response[i].logo_image + '@150h_150w_1e_1c_10-2ci" class="weui_media_appmsg_thumb"></div>'+
+							'<div class="weui_media_bd">'+
+							'<h4 class="title">'+ response[i].title +'</h4>' +
+							'<p class="weui_media_desc group">项目：'+ getInfo.data.project +'</p><p class="weui_media_desc group">组别：'+ getInfo.data.group +'</p></div><div class="weui_cell_ft"><span class="'+ color +'"><em>'+ parseFloat(response[i].amount,10) +'</em>元</span></div></li>';
+					};
+					$('#list').append(_html);
+					me.resetload();
+				},
+				error: function(xhr, type){
+					base.tips("网络有点卡");
+				}
+			});
+		}
+	});
+
+	var isInfo = true;
+ 	$('#list').on('tap','li',function(){
+		if(isInfo){
+			var info = $(this).data('inof'),
+				deadline = $(this).data('deadline'),
+				getTime = new Date().getTime(),
+				id = '['+ info.enroll_id +']';
+			var href ='../pay/weixin_unifiedorder.html?enroll_id='+ info.enroll_id +'&type=';
+			switch(info.enroll_type){
+				case 'a': href += 'activity&order='; var url = base.activityEnrollSelect; var data={activity_enroll_id_params:id,session : session};  break;
+				case 'e': href += 'event&order='; var url = base.eventEnrollSelect; var data={event_enroll_id_params:id,session : session};  break;
+				case 't': href += 'training&order='; var url = base.trainingEnrollSelect; var data={training_enroll_id_params:id,session : session};  break;
+			};
+			if(getTime > deadline){
+				base.tips("项目已经过期！");
+				return false;
+			};
+			$.ajax({
+				type:'POST',
+				url:url,
+				data:data,
+				dataType:'json',
+				async: false,
+				beforeSend : function(){
+		            base.tips("加载中...",1);
+		        },
+				success : function(data){
+					if(data.ret == '0'){
+						window.location.href = href + data.data.order_no
+					}
+				},
+				error:function(xhr){
+					console.log(xhr)
+				}
+			})
+		}else{
+			return false;
+		}
+	});
+
+	//禁止微信
+	//require('jweixin')
+	base.hideOptionMenuWx();
+
+});
+</script>
+</body>
+</html>

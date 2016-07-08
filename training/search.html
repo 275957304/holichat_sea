@@ -19,7 +19,7 @@
 <body>
 <header class="header">
     <a href="index.html" class="bnt-back"><i class="icon-back"></i></a>
-    <h1>搜索赛事活动</h1>
+    <h1>培训搜索</h1>
     <a class="bnt_right" href="../index.html"><span class="icon_home"></span></a>
 </header>
 <div class="main">
@@ -44,7 +44,7 @@ seajs.use(requireFun, function(a,base,b,c,wx){
             official = $("#official").val(),
             page_size = $("#page_size").val(),
             page = $("#page").val(),
-            event_type = $("#event_type").val(),
+            training_type = $("#event_type").val(),
             location_id = base.getItem('city_id'),
             intswitch= true;
 
@@ -54,7 +54,7 @@ seajs.use(requireFun, function(a,base,b,c,wx){
             loadDownFn : function(me){
                 $.ajax({
                     type: 'GET',
-                    url: base.eventSearch + "?community_cid=" + community_cid + "&location_id=" + location_id + "&official=" + official + "&page_size=" + page_size + "&page=" + page + "&content=" + content + "&event_type=" + event_type,
+                    url: base.trainingSearch + "?community_cid=" + community_cid + "&location_id=" + location_id + "&official=" + official + "&page_size=" + page_size + "&page=" + page + "&content=" + content + "&training_type=" + training_type,
                     dataType: 'json',
                     success: function(data){
                         $('.tips').hide();
@@ -66,7 +66,7 @@ seajs.use(requireFun, function(a,base,b,c,wx){
                             me.noData();
                         }
                         for(var i = 0; i < response.length; i++){
-                            _html +='<a class="weui_media_box weui_media_appmsg list" href="info.html?id='+ response[i].event_id +'">'
+                            _html +='<a class="weui_media_box weui_media_appmsg list" href="info.html?id='+ response[i].training_id +'">'
                                     +'<div class="weui_media_hd"><img alt="" src="' + base.imgURL + response[i].logo_image + '" class="weui_media_appmsg_thumb"></div>'
                                     +'<div class="weui_media_bd"><h4 class="title">' + response[i].title +' </h4>'
                                     +'<div class="list_doce"><span class="price">￥<em>' + response[i].cost +'</em>起</span> ' + response[i].name +'</div>'
@@ -93,7 +93,7 @@ seajs.use(requireFun, function(a,base,b,c,wx){
         wx.ready(function(){
             wx.hideOptionMenu();
         });
-    });
+    })
 });
 </script>
 </body>
