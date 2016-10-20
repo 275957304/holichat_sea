@@ -72,7 +72,7 @@ seajs.use(requireFun, function(zepto,base,add,login,app,sort){
 								var detail = base.getItemInfo(action.type,action.data.id);
 								var sort_name = sort.getData(detail.category_id);
 								result += '<a class="rec_link weui_media_box" href="'+ detail.href +'">';
-								result += '<div class="rec_img"><img src="'+ base.imgURL + data.data.list[i].image +'">'+ detail.status +'</div>';
+								result += '<div class="rec_img"><img src="'+ base.testImg(data.data.list[i].image) +'">'+ detail.status +'</div>';
 								result += '<div class="text_box"><h3 class="weui_media_title">'+ data.data.list[i].title +'</h3>';
 								result += '<div class="rec_txt"><span class="price">¥'+ parseFloat(detail.price,10) +'起</span><span class="tip">'+ sort_name.name +'</span></div>';
 								result += '</div>';
@@ -83,7 +83,7 @@ seajs.use(requireFun, function(zepto,base,add,login,app,sort){
 						me.resetload();
                     },
                     error: function(xhr, type){
-                        base.tips(xhr);
+                        //base.tips(xhr);
                         // 即使加载出错，也得重置
                         me.resetload();
                     }

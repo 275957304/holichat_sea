@@ -15,9 +15,7 @@
 <link rel="stylesheet" type="text/css" href="../dist/css/hlq.min.css">
 <script type="text/javascript" src="../dist/js/sea.js"></script>
 <script type="text/javascript" src="../dist/js/sea_config.js"></script>
-<style>
-.weui_cells_title{background: #e2e2e2;color: #666; font-size: 12px; padding: 5px 10px;}
-</style>
+<script src="http://gosspublic.alicdn.com/aliyun-oss-sdk-4.4.4.min.js"></script>
 </head>
 <body>
 <header class="header">
@@ -30,20 +28,38 @@
 </footer>
 <div class="main">
 	<div id="team"></div>
-	<div id="tempList">
-
-	</div>
+	<div id="tempList"></div>
 </div>
 <script type="text/javascript">
-var requireFun = ['zepto','base','jweixin','idcard','base64'];
-seajs.use(requireFun, function(zepto,base,wx,idcard,bs64){
+var requireFun = ['zepto','base','jweixin','idcard','base64','jsform','md5'];
+seajs.use(requireFun, function(zepto,base,wx,idcard,bs64,jsform){
     var id = base.getURLVar('id'),
 		project_id = base.getURLVar('project_id'),
 		group_id = base.getURLVar('group_id'),
-		key = [],
+        stsAuthData = null,
+        isStsAuth = true,
+        promo = false,
+        promo_code ="",
+        predpare = 0,
+        team_name = "",
 		isTeam = false;
-	console.log(project_id);
-	console.log(group_id);
+
+    $.ajax({
+        url: base.stsAuth,
+        type: 'get',
+        data: {'session':base.getItem("session"),'uid':base.getItem("uid"),'type':'app_image'},
+        dataType: 'json',
+		async: false,
+        success : function(data){
+            if(data.ret == '0'){
+                stsAuthData = data.data;
+            }
+        },
+        error: function(res) {
+            base.tips("获取STS授权失败");
+        }
+    });
+
     $.ajax({
         url: base.getEnrollInfo,
         type: 'get',
@@ -64,29 +80,30 @@ seajs.use(requireFun, function(zepto,base,wx,idcard,bs64){
     				if(project_id == item.id){
     					$.each(item.group,function(i,val){
     						if(group_id == val.id){
-    							var template = JSON.parse(val.enroll_template);
+                                predpare = parseInt(val.prepare_enroll);
+    							var temp = JSON.parse(val.enroll_template),
+                                    common = temp.common;
+                                    template = temp.personal,
+                                    common_html = '<form id="commonForm">';
+
     							if(val.single_person == 0){
     								isTeam = true;
     								var min = parseInt(val.person_min);
     								var max = parseInt(val.person_max);
-    								var _html ="";
-    								_html += '<div class="weui_cell"><div class="weui_cell_hd"><label class="weui_label">队伍队名称</label></div><div class="weui_cell_bd weui_cell_primary"><input name="team_name" type="text" placeholder="请输入队伍队名称" class="weui_input"></div></div>';
-    								_html += '<div class="weui_cell weui_cell_select weui_select_after"><div class="weui_cell_hd"><label class="weui_label" for="">队伍人数</label></div><div class="weui_cell_bd weui_cell_primary">'+ setOpaction(min,max) +'</div></div>';
-
-    								setTemplate(min,template);
-
+                                    console.log(temp.common)
+                                    common_html += jsform.setTemplateHTML(common,1);
+                                    common_html += '</form><div class="weui_cell weui_cell_select weui_select_after"><div class="weui_cell_hd"><label class="weui_label" for="">队伍人数</label></div><div class="weui_cell_bd weui_cell_primary">'+ base.setOpaction(min,max) +'</div></div>';
+                                    $('#tempList').empty().append(jsform.setTemplate(min,template,predpare));
     								$('body').on('change','#select',function(){
     									var item = document.getElementById('select');
     									var index = item.selectedIndex;
     									var val = item.options[index].value || item.options[0].value;
-    									setTemplate(val,template);
+                                        $('#tempList').empty().append(jsform.setTemplate(val,template,predpare));
     								});
-    								$('#team').append(_html);
-
+    								$('#team').append(common_html);
     							}else{
-    								//单人组
     								var min = 1;
-    								setTemplate(min,template);
+    								$('#tempList').empty().append(jsform.setTemplate(min,template,predpare));
     							}
     						}
     					})
@@ -99,146 +116,93 @@ seajs.use(requireFun, function(zepto,base,wx,idcard,bs64){
         }
     });
 
-	function setOpaction(min,max){
-		var i, s="";
-		s = '<select class="weui_select" id="select">';
-		for(i= min; i <= max; i++){
-			s += '<option value="'+ i +'">'+ i +'</option>';
-		}
-		s += '</select>';
-		return s;
-	}
+    // 图片上传
+    if($('.weui_uploader_input').length > 0){
+        var client = new OSS.Wrapper({
+            region: 'oss-cn-hangzhou',
+            accessKeyId: stsAuthData.AccessKeyId,
+            accessKeySecret: stsAuthData.AccessKeySecret,
+            bucket: stsAuthData.Bucket,
+            stsToken: stsAuthData.SecurityToken,
+            timeout: "600000",
+        });
+        $('.weui_uploader_input').on('change',function(e){
+            jsform.toast("图片上传中",true);
+            var that = $(this),
+                file = e.target.files[0],
+                fileName = file.name,
+                picType = file.name.substr(file.name.lastIndexOf("."))
+                storeAs = 'uploads/',
+                netPath = "e" + "/" + id + "/e/" + base.getItem("uid") + "/",
+                picName = $.md5(file.name + file.lastModified);
+            storeAs = storeAs + netPath + picName + picType;
+            client.multipartUpload(storeAs, file).then(function (result){
+                var imgUrl = result.name.substr(result.name.indexOf('/')+1);
+                that.data('url',imgUrl);
+                that.siblings().empty().append('<img src="'+ base.imgHath + result.name +'" >');
+                base.tips("上传成功");
+                jsform.toastClose();
+            }).catch(function (err) {
+                console.log(err);
+                jsform.toastClose();
+            });
+        })
+    }
 
-	function setTemplate(num,item){
-		var template="";
-		$('#tempList').empty();
-		for(var i=1; i <= num; i++){
-			template += '<div class="weui_cells_title">参赛者'+ i +'</div><div class="weui_cells weui_cells_form">';
-			$.each(item,function(i,val){
-				key.push(val.key)
-				if(val.key == 'sex'){
-					template += '<div class="weui_cell weui_cell_select weui_select_after"><div class="weui_cell_hd"><label class="weui_label" for="">'+ val.name +'</label></div><div class="weui_cell_bd weui_cell_primary"><select name="'+ val.key +'" class="weui_select"><option value="男">男</option><option value="女">女</option></select></div></div>';
-
-				}else if(val.key == 'phone'){
-					template += '<div class="weui_cell"><div class="weui_cell_hd"><label class="weui_label">'+ val.name +'</label></div><div class="weui_cell_bd weui_cell_primary"><input name="'+ val.key +'" type="number" placeholder="请输入'+ val.name +'" class="weui_input"></div></div>';
-				}else{
-					template += '<div class="weui_cell"><div class="weui_cell_hd"><label class="weui_label">'+ val.name +'</label></div><div class="weui_cell_bd weui_cell_primary"><input name="'+ val.key +'" type="text" field="'+ val.name +'" placeholder="请输入'+ val.name +'" class="weui_input"></div></div>';
-				}
-			})
-			template += '</div>';
-		}
-		$('#tempList').append(template);
-	};
-
-
-
-
-    var team_name = "";
     $('#signUp').on('tap',function(){
-        var len = $(".weui_cells_form").length,
-            data = [],
-			dataAfter = []
-            base64 =""
-            truename = "",
-            idcard = "",
-            phone ="",
-            sex = "";
+        var peopleNumber = $(".weui_cells_form"),
+            formList = document.getElementById("form1"),
+            common_data = {},
+            other_fields = [],
+            data = [], //所有数据
+            merge = {}, //合并数据
+            base64 ="", // 编码bs64
+            parameter = {}; //参数
+        //如果是多人组
+        if(isTeam){
+            common_data = jsform.commonForm('commonForm');
+        }
+        //表单提交 peopleNumber:参赛人数 表单ID
+        other_fields = jsform.fsubmit(peopleNumber,formList);
+        if(!other_fields) return false;
 
-		team_name = base.toUnicode($("input[name='team_name']").val());
-		if(team_name == ""){
-			base.tips("请填队伍名称");
-			return false;
-		};
-		var merge ={};
-        for(var i=0; i < len; i++){
-			var enroll_params = {};
-			for(var j=0; j < key.length; j++){
-				var k = key[j];
-				var val = $("input[name='"+ key[j] +"']").eq(i).val();
-				var field = $("input[name='"+ key[j] +"']").eq(i).attr('field');
-
-				if($("input[name='truename']").length > 0){
-					truename = $("input[name='truename']").eq(i).val();
-					if(truename == ""){
-						base.tips("请填写参赛者"+ (i+1) +"姓名");
-						$("input[name='truename']").focus();
-						return false;
-					}
-				};
-
-				if($("input[name='idcard']").length > 0){
-					idcard = $("input[name='idcard']").eq(i).val();
-					if(idcard == ""){
-						base.tips("请填参赛者"+ (i+1) +"身份证");
-						$("input[name='idcard']").focus();
-						return false;
-					}else if(!checkCard(idcard)){
-						base.tips("参赛者"+ (i+1) +"身份证号码不正确");
-						$("input[name='idcard']").val("").focus();
-						return false;
-					}
-				};
-
-				if($("input[name='phone']").length > 0){
-					phone = $("input[name='phone']").eq(i).val();
-					if(phone == ""){
-						base.tips("请填参赛者"+ (i+1) +"联系电话");
-						$("input[name='phone']").focus();
-						return false;
-					}else if(!base.isPhone(phone)){
-						base.tips("请填参赛者"+ (i+1) +"电话号码不正确");
-						$("input[name='phone']").val("").focus();
-						return false;
-					}
-				};
-
-				if($("select[name='sex']").length > 0){
-				   sex = $("select").eq(i).val();
-				};
-
-				if(val == ""){
-					base.tips("请填参赛者"+ (i+1) +"的" + field);
-					return false;
-				}
-
-				enroll_params[k] = base.toUnicode(val);
-			}
-			dataAfter.push(enroll_params);
-        };
+        console.log(common_data)
 
 		merge.project_id = parseInt(project_id,10);
 		merge.group_id = parseInt(group_id,10);
-		if(isTeam){merge.team_name = team_name;}
-		merge.enroll_params = dataAfter;
+		merge.common_data = common_data;
+		merge.personal_data = other_fields;
 		data.push(merge);
-
-        //console.log(data);
-        //console.log(JSON.stringify(data));
 		var jsonDate = eval("'" + JSON.stringify(data) + "'");
         base64 = BASE64.encoder(jsonDate);
-        //console.log("编码后" + base64);
-		var enroll = []
+        console.log("编码后" + base64);
+        //参数
+        parameter = {
+            event_id : id,
+            entrance_type: 'a',
+            entrance_community_cid : 0,
+            session: base.getItem('session'),
+            event_enroll_data: base64
+        }
+        if(promo){
+            parameter.coupon_code = promo_code;
+        };
+        console.log(parameter)
         $.ajax({
             type: 'POST',
             url: base.eventEnroll,
-            data: {
-                event_id : id,
-                entrance_type: 'a',
-                entrance_community_cid : 0,
-                session: base.getItem('session'),
-                event_enroll_data: base64
-            },
+            data: parameter,
             dataType: 'json',
             beforeSend : function(){
                 base.tips("加载中...",1);
             },
             success: function(data){
-                //console.log(data);
+                console.log(data);
 				$('.tips-message').hide();
 				if(data.ret == 0){
                     //订单id
                     var enroll_id = data.data[0];
-                    //选择赛事支付
+                    //选择赛事支付接口
                     $.ajax({
                         type:'POST',
                         url:base.eventEnrollSelect,
@@ -254,9 +218,15 @@ seajs.use(requireFun, function(zepto,base,wx,idcard,bs64){
                                 console.log(data.data.sum_amount);
                                 var order = data.data.order_no;
                                 if(data.data.sum_amount == 0){
-            						window.location.href = 'order_info.html?enroll_id=' + enroll_id + '&guide=1';
+                                    console.log(promo)
+                                    //如果是预报名不用到详情页 预报名 0是不用审核，1是先付后审模式，2是先审后付模式。
+                                    if(predpare != '0'){
+                                        window.location.href = '../mine/index.html';
+                                        return
+                                    }
+            						window.location.href = 'order_info.html?id='+ id +'&enroll_id=' + enroll_id + '&guide=1';
             					}else{
-            						window.location.href = '../pay/weixin_unifiedorder.html?enroll_id=' + enroll_id + '&type=event' + '&order=' + order;
+            						window.location.href = '../pay/weixin_unifiedorder.html?id='+ id +'&enroll_id=' + enroll_id + '&type=event' + '&order=' + order + '&predpare=' + predpare;
             					};
                             }
                         },
@@ -265,19 +235,69 @@ seajs.use(requireFun, function(zepto,base,wx,idcard,bs64){
                         }
                     });
 
-                };
-
-				if(data.ret == 6161){
-                    base.tips("队伍队名己存在");
-					$("input[name='team_name']").val("").focus();
-                    return false;
-                };
+                }else{
+                    switch (data.ret) {
+                        case 6161:
+                            base.tips("队伍队名己存在");
+                            $("input[name='team_name']").val("").focus();
+                            break;
+                        case 6193:
+                            base.tips("当前优惠码的使用己达上限");
+                            promo = false;
+                            $("#code").val("");
+                            break;
+                        case 6388:
+                                base.tips("无效的手机号码");
+                                break;
+                        case 6389:
+                                base.tips("无效的身份证号码");
+                                break;
+                        case 6482:
+                                base.tips("无效的港澳通行证号码");
+                                break;
+                        default:
+                            base.tips(data.ret);
+                    }
+                }
             },
             error: function(xhr) {
-				console.log(xhr)
+				//base.tips(xhr);
             }
         });
+    });
 
+
+    //优惠码
+    $.get(base.eventCoupon,{event_id:id},function(data){
+        //console.log(data)
+        if(data.data.is_coupon == '1'){
+            promo = true; //是否有优惠码
+            var template = '<div class="weui_cells_title">优惠码</div><div class="weui_cell"><div class="weui_cell_hd"><label class="weui_label">团队优惠码</label></div><div class="weui_cell_bd weui_cell_primary"><input id="code" class="weui_input" type="text" placeholder="请输入优惠码"></div><div id="promoArea" class="weui_cell_ft"></div>';
+            $('#tempList').append(template);
+        }
+    },'json');
+    $('#tempList').delegate('#code','blur',function(){
+        var code = $(this).val();
+        promo_code = code;
+        if(code.length > 0 ){
+            $.get(base.eventCouponInfo,{code:code,event_id:id},function(data){
+                //console.log(data);
+                if(data.ret == '0'){
+                    if(data.data.remain_qty > 0){
+                        $('#promoArea').html('<i class="weui_icon_success"></i>');
+                    }else{
+                        $("#code").val("");
+                        promo = false;
+                        base.tips("优惠码过期");
+                    }
+                }else{
+                    $('#promoArea').html('<i class="weui_icon_warn"></i>');
+                    base.tips("优惠码不正确");
+                }
+            },'json');
+        }else{
+            $('#promoArea').html('');
+        }
     });
 
 

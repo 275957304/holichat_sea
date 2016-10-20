@@ -1,11 +1,7 @@
-/**
- * dropload
- * 西门(http://ons.me/526.html)
- * 0.9.0(160215)
- */
-
-;(function($){
+define(function(require, exports, module) {
     'use strict';
+    require('zepto');
+    console.log($);
     var win = window;
     var doc = document;
     var $win = $(win);
@@ -159,7 +155,7 @@
                 me.$element.prepend('<div class="'+me.opts.domUp.domClass+'"></div>');
                 me.upInsertDOM = true;
             }
-            
+
             fnTransition(me.$domUp,0);
 
             // 下拉
@@ -305,4 +301,5 @@
             'transition':'all '+num+'ms'
         });
     }
-})(window.Zepto || window.jQuery);
+    module.exports = $.fn.dropload;
+});

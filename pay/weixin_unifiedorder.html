@@ -27,7 +27,7 @@
 <div class="main">
     <div class="weui_list_text">
     </div>
-	<div class="weui_cells_title">参赛者名单</div>
+	<div id="bm" class="weui_cells_title">参赛者名单</div>
     <div id="enrollInfos" class="weui_cells"></div>
 	<div class="weui_cells_title"><span class="pull-right text-danger">¥<b id="amount"></b></span>合计支付</div>
 	<div class="weui_cells weui_cells_checkbox">
@@ -43,22 +43,26 @@
     </div>
 </div>
 <script type="text/javascript">
-define(function(require, exports, module){
-	require('http://res.wx.qq.com/open/js/jweixin-1.0.0.js');
-});
-var requireFun = ['zepto','base'];
-seajs.use(requireFun, function(zepto,base){
+// define(function(require, exports, module){
+// 	var wx = require('http://res.wx.qq.com/open/js/jweixin-1.0.0.js');
+// });
+var requireFun = ['zepto','base','http://res.wx.qq.com/open/js/jweixin-1.0.0.js'];
+seajs.use(requireFun, function(zepto,base,wx){
     $(function(){
         var lock = false,
             order = base.getURLVar('order'),
+            id = base.getURLVar('id'),
             type = base.getURLVar('type'),
+            source = base.getURLVar('source'),
             body_txt ='',
+            amount = base.getURLVar('amount'),
             enroll_id = base.getURLVar('enroll_id'),
             session = base.getItem('session'),
             uid = base.getItem('uid'),
+            predpare = base.getItem('predpare'),
             openid = base.getItem('openid'),
             _html ="";
-
+        if(source !='insurance'){
         //赛事订单详细显示
         ;(function(){
             var url;
@@ -72,34 +76,43 @@ seajs.use(requireFun, function(zepto,base){
                 url: url,
                 type: 'get',
                 dataType: 'json',
-                beforeSend : function(){
-                    base.tips("加载中...",1);
-                },
+                beforeSend : function(){base.tips("加载中...",1)},
                 success : function(data){
-                    console.log(data)
-                    $('.tips-message').hide();
-                    switch(data.ret){
-                        case 6111: return base.tips("赛事订单错误");break;
-                        case 6115: return base.tips("订单错误");break;
-                    };
-                    $('#amount').text(data.data.amount);
-                    $('.weui_list_text').append('<p>订单编号：'+ order +'</p><p>报名时间：'+ data.data.enroll_time +'</p>');
-                    $.each(data.data.enroll_infos,function(index,item){
-                        item.phone ? _html += '<div class="weui_cell"><div class="weui_cell_bd weui_cell_primary">'+ item.truename +'</div><div class="weui_cell_ft">'+ item.phone +'</div></div>' : _html += '<div class="weui_cell"><div class="weui_cell_bd weui_cell_primary">'+ item.truename +'</div></div>' ;
-                    })
-                    $('#enrollInfos').append(_html);
+                    if(data.ret == '0'){
+                        amount = data.data.insurance_amount ? parseFloat(data.data.enroll_amount) + parseFloat(data.data.insurance_amount) : parseFloat(data.data.enroll_amount);
+                        $('.tips-message').hide();
+                        switch(data.ret){
+                            case 6111: return base.tips("赛事订单错误");break;
+                            case 6115: return base.tips("订单错误");break;
+                        };
+                        $('#amount').text(amount);
+                        $('.weui_list_text').append('<p>订单编号：'+ order +'</p><p>报名时间：'+ data.data.enroll_time +'</p>');
+                        $.each(data.data.enroll_infos,function(index,item){
+                            var other_fields = JSON.parse(item.other_fields),
+                                phone = other_fields.phone ? '<div class="weui_cell_ft">'+ other_fields.phone +'</div>' : ""
 
+                            _html += '<div class="weui_cell"><div class="weui_cell_bd weui_cell_primary">'+ other_fields.truename +'</div>'+ phone +'</div>' ;
+                        })
+                        $('#enrollInfos').append(_html);
+                    }else{
+                        base.tips("赛事订单有误");
+                    }
                 },
                 error : function(res){
                     base.tips("网络有点卡");
                 }
             });
         })();
-
+        }else{
+            $('#enrollInfos,#bm,.weui_list_text').hide();
+            $('#amount').text(amount)
+        }
+        //console.log(wx);
         //调用支付
         $("#toPay").on('click',function(){
-            console.log(openid);
             if (lock) return false;
+            lock = true;
+            $("#toPay").attr("disabled",true).addClass('weui_btn_disabled');
             if(!base.isWeixin()){
                 base.tips("请使用微信浏览器操作！~");
                 return false;
@@ -108,7 +121,8 @@ seajs.use(requireFun, function(zepto,base){
                 openid: openid,
                 order : order,
                 body  : '报名成功',
-                appid : 'wxcc5c198d146a1779'
+                //appid : 'wxcc5c198d146a1779',
+                type : 'mp'
             };
             $.post(base.weixinUnifiedorder,postData,function(response){
                 var res = JSON.parse(response);
@@ -121,6 +135,7 @@ seajs.use(requireFun, function(zepto,base){
 
                 //微信JS签名
                 $.get(base.wxSign,{'appid':'wxcc5c198d146a1779','url':window.location.href.split('#')[0]},function(response){
+                    //console.log(response);
                     wx.config({
                         debug     : false,
                         appId     : 'wxcc5c198d146a1779',
@@ -131,7 +146,7 @@ seajs.use(requireFun, function(zepto,base){
                     });
 
                     wx.ready(function(){
-                        lock = true;
+						 lock = false;
                         wx.chooseWXPay({
                             timestamp: time, // 支付签名时间戳，注意微信jssdk中的所有使用timestamp字段均为小写。但最新版的支付后台生成签名使用的timeStamp字段名需大写其中的S字符
                             nonceStr: nonce_str, // 支付签名随机串，不长于 32 位
@@ -140,10 +155,16 @@ seajs.use(requireFun, function(zepto,base){
                             paySign: sign, // 支付签名
                             success: function (res){
                                 // 支付成功后的回调函数
-                                window.location.href = '../' + type + '/order_info.html?enroll_id=' + enroll_id + '&guide=1';
+                                if(predpare != '0'){
+                                    window.location.href = '../mine/index.html';
+                                    return
+                                }
+                                window.location.href = '../' + type + '/order_info.html?id='+ id + '&enroll_id=' + enroll_id + '&guide=1';
                             }
                         });
                         wx.error(function(res){
+
+                            $("#toPay").attr("disabled",false).removeClass('weui_btn_disabled');
                             // config信息验证失败会执行error函数，如签名过期导致验证失败，具体错误信息可以打开config的debug模式查看，也可以在返回的res参数中查看，对于SPA可以在这里更新签名。
                         });
                         wx.hideOptionMenu();

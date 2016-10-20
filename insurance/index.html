@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>保险选择</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="format-detection" content="telephone=no"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="distribution" content="global" />
+<meta name="author" content="活力圈" />
+<meta name="webcrawlers" content="all" />
+<link href="../dist/img/ico16.ico" rel="shortcut icon">
+<link rel="stylesheet" type="text/css" href="../dist/css/hlq.min.css">
+<script type="text/javascript" src="../dist/js/sea.js"></script>
+<script type="text/javascript" src="../dist/js/sea_config.js"></script>
+</head>
+<body>
+<header class="header">
+    <div class="bnt-back" onclick="history.back()"><i class="icon-back"></i></div>
+    <h1>保险</h1>
+</header>
+<div class="main">
+    <div id="list" class="weui_panel_bd"></div>
+</div>
+<footer class="footer">
+    <a class="weui_btn weui_btn_warn" id="next" href="javascript:void(0)">下一步</a>
+</footer>
+<style>
+.weui_cell{padding: 10px 10px 0;}
+.fields{margin-bottom: 10px;}
+.fields .weui_media_title{margin-bottom: 5px;}
+.insuran_txt a{color: #09bb07; font-size: 14px; margin-right: 10px; font-weight: bold}
+#list .weui_cells_checkbox{border-bottom: 1px solid #e5e5e5;}
+</style>
+<script type="text/javascript">
+var requireFun = ['zepto','base','login','dropload','jweixin'];
+seajs.use(requireFun, function(zepto,base,login,dropload,wx){
+    var id = base.getURLVar('id'),
+        type = base.getURLVar('type'),
+        page = 1,
+        page_size = 10;
+
+    $('.main').dropload({
+        scrollArea : window,
+        loadDownFn : function(me){
+            $.ajax({
+                type: 'GET',
+                url: base.insurance,
+                data: {
+                    session:base.getItem("session"),
+                    uid:base.getItem("uid"),
+                    page_size:page_size,
+                    page:page
+                },
+                dataType: 'json',
+                success: function(data){
+                    console.log(data)
+                    page++;
+                    var template = '';
+                    if(data.data.list.length < 1){
+                        me.lock();
+                        me.noData();
+                    };
+                    $.each(data.data.list,function(index,item){
+                        console.log(item)
+                        var fieldsArr = JSON.parse(item.other_fields), fields ="";
+                        if(fieldsArr.length > 0){
+                            $.each(fieldsArr,function(i,v){
+                                fields += '<div class="fields"><h4 class="weui_media_title">'+ v.title +'</h4><p class="weui_media_desc">'+ v.content +'</p></div>';
+                            });
+                            //fields += '<a href="#">《保险条款》</a><a href="#">《除外责任条款》</a>';
+                        }else{
+                            fields += '<p class="weui_media_desc">暂无内容</p>';
+                        }
+                        template += '<div class="weui_cells_checkbox"><div class="weui_cell"><div class="weui_cell_bd weui_cell_primary">'+ item.name +'<p class="dos"><span class="text-danger">¥ '+ item.amount +'</span></p></div><label for="'+ item.id +'" class="weui_check_label"><div class="weui_cell_hd"><input value="'+ item.id +'" name="radio" type="radio" id="'+ item.id +'" class="weui_check"><i class="weui_icon_checked"></i></label></div></div><div class="insuran_txt">'+ fields +'</div><i class="taggle_icon"></i></div>';
+                    });
+
+                    $('#list').append(template)
+                    me.resetload();
+                },
+                error: function(xhr, type){
+                    base.tips("网络有点卡");
+                }
+            });
+        }
+    });
+
+
+    $("#next").on('tap',function(){
+        insurance = $('input[type="radio"][name="radio"]:checked').val();
+        console.log(insurance)
+        if(insurance == undefined || insurance == ''){
+            base.tips("请选择组别");
+            return
+        }
+        window.location.href = 'insurance_info.html?insurance_id=' + insurance + '&type=' + type + '&id=' + id
+    });
+
+    $("#list").on('click','.weui_cell_bd,.taggle_icon',function(){
+        $('.insuran_txt').find('img').attr("style","");
+        console.log('aaa')
+        if( $(this).parents('.weui_cells_checkbox').hasClass('active') ){
+            $(this).parents('.weui_cells_checkbox').removeClass('active')
+        }else{
+            $(this).parents('.weui_cells_checkbox').addClass('active');
+            $(this).parents('.weui_cells_checkbox').siblings().removeClass('active');
+        }
+    });
+
+	//禁止微信
+    wx.ready(function(){
+        wx.hideOptionMenu();
+    });
+
+})
+</script>
+</body>
+</html>

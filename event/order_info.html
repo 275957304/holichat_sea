@@ -18,6 +18,8 @@
 <style>
 .weui_mask{z-index: 10;}
 .weui_dialog img{display:block; margin:0 auto;}
+.weui_list_text{border:none;}
+.weui_btn.weui_btn_mini{padding: 5px 25px;}
 </style>
 </head>
 <body>
@@ -33,10 +35,12 @@
         <div class="tc">
             <h4 id="title"></h4>
             <img id="rwm" width="110" height="110" class="center-block" src="" alt="订单二维码">
-            <p>号码:<span id="number"></span> (<span class="gary" id="verification"></span>)</p>
+            <p class="p10">号码:<span id="number"></span> (<span class="gary" id="verification"></span>)</p>
+			<a href="javascript:;" id="insuranceBtn" class="weui_btn weui_btn_mini weui_btn_warn"> 购买保险 </a>
+            <a href="javascript:;" id="downApp" class="weui_btn weui_btn_mini weui_btn_primary">下载APP</a>
         </div>
     </div>
-	<div class="weui_cells">
+	<div style="margin-top:5px;" class="weui_cells">
 		<div class="weui_cell">开始时间 <span id="time" class="weui_cell_desc"></span></div>
 		<div class="weui_cell">地点 <span id="location" class="weui_cell_desc"></span></div>
 		<div class="weui_cell">项目<span id="project" class="weui_cell_desc"></span></div>
@@ -66,35 +70,33 @@
     </div>
 </div>
 
+<div style="display: none;" id="downAppPop">
+	<div class="weui_mask"></div>
+    <div style="width:70%;" class="weui_dialog">
+        <img width="100%" src="../dist/img/rwm.jpg">
+    </div>
+</div>
 <script type="text/javascript">
-var requireFun = ['zepto','base','address','login/login','jweixin'];
+var requireFun = ['zepto','base','address','jweixin'];
 seajs.use(requireFun, function(zepto,base,add,wx){
 	var enroll_id = base.getURLVar('enroll_id'),
+        id = base.getURLVar('id'),
         project_id ='',
         group_id = '',
         _html = '';
-
 	var openid = base.getItem('openid');
 	var guide = parseInt(base.getURLVar('guide'));
-	$('#guide,#follow').on('click', '.weui_mask', function (){
+	$('#guide,#follow,#downAppPop').on('click', '.weui_mask', function (){
 		$('#guide').hide();
 		$('#follow').hide();
+		$('#downAppPop').hide();
 	});
-
-	//微信订阅检查
-    if(base.isWeixin()){
-    	$.get(base.wxSubscribe,{openid:openid},function(data){
-    		console.log(data);
-    		if(data.data.subscribe == 1  &&  guide == 1){
-    			$("#guide").show();
-    		}
-    		if(data.data.subscribe == 0){
-    			$("#follow").show();
-    		}
-
-    	},'json');
-    };
-
+    $('#downApp').on('click',function(){
+        $('#downAppPop').show();
+    })
+    $('#insuranceBtn').on('click',function(){
+        window.location.href = "../insurance/index.html?type=e&id=" + id
+    })
 	$.ajax({
         type: 'get',
         url: base.eventOrderInfo,
@@ -109,106 +111,81 @@ seajs.use(requireFun, function(zepto,base,add,wx){
             base.tips("加载中...",1);
         },
         success: function(data){
+			$('.tips').hide();
+			var event_id = data.data.event_id,
+                enroll_infos = data.data.enroll_infos;
             project_id = data.data.event_project_id;
             group_id = data.data.event_group_id;
-			$('.tips').hide();
-			var event_id = data.data.event_id;
 			$('#title').html(data.data.title);
-			$('#rwm').attr('src','http://pan.baidu.com/share/qrcode?w=300&h=300&url='+ enroll_id);
-			$('#number').text(data.data.event_enroll_id);
+			$('#rwm').attr('src','http://pan.baidu.com/share/qrcode?w=300&h=300&url='+ data.data.code);
+			$('#number').text(data.data.code);
 			$('.footer').append('<a class="weui_btn weui_btn_warn" href="info.html?id='+ event_id +'">查看详情</a>')
 			//项目
 			var getProjectGroup = base.proGroupInfo('e',data.data.event_project_id,data.data.event_group_id);
 			$('#group').text(getProjectGroup.data.group);
 			$('#project').text(getProjectGroup.data.project);
-
-			//开始时间与地址
-			$.get(base.getBrief,{'event_id' : event_id},function(data){
-				$('#time').text(data.data.begin_date.substring(0,10));
-				$('#location').text( add.getAddress(data.data.region_id)  + data.data.address )
-			},'json');
-
-			//报名信息
-			$.get(base.eventTeamInfo,{'event_enroll_id':enroll_id},function(data){
-				if(data.data){
-					$('#team_name').append('<div class="weui_cell">队伍名称 <span class="weui_cell_desc">'+ data.data.team_name +'</span></div>');
-				}
-			},'json');
-
-			$.each(data.data.enroll_infos,function(index,item){
-				//console.log(item)
-				_html += '<div class="weui_cells_title">参赛者'+ (index+1) +'</div>';
-				if(item.truename){
-					_html += '<div class="weui_cell">姓名 <span class="weui_cell_desc">'+ item.truename +'</span></div>'
-				}
-				if(item.phone){
-					_html += '<div class="weui_cell">联系电话 <span class="weui_cell_desc">'+ item.phone +'</span></div>'
-				}
-				if(item.idcard){
-					_html += '<div class="weui_cell">身份证 <span class="weui_cell_desc">'+ item.idcard +'</span></div>'
-				}
-				if(item.other_fields){
-					var fields = JSON.parse(item.other_fields);
-					$.ajax({
-						url: base.getEnrollInfo,
-						type: "GET",
-						data: {session:base.getItem('session'), uid:base.getItem('uid'), event_id:event_id},
-						dataType: 'json',
-						success: function (data) {
-							console.log(data)
-							$.each(data.data.project,function(index, item){
-								if(project_id == item.id){
-									$.each(item.group,function(i,val){
-										if(group_id == val.id){
-											var template = JSON.parse(val.enroll_template);
-											$.each(template,function(i,val){
-												if(fields[val.key]){
-													console.log(val)
-													_html += '<div class="weui_cell">' + val.name + '<span class="weui_cell_desc">'+ fields[val.key] +'</span></div>'
-												}
-											})
-										}
-									})
-								}
-							});
-						}
-					});
-				}
-			});
+            //开始时间与地址
+            var getInfo = base.getItemInfo('event',event_id);
+            $('#time').text(getInfo.begin_date.substring(0,10));
+            $('#location').text( add.getAddress(getInfo.region_id)  + getInfo.address );
+            console.log(data)
+            //报名信息
+            $(enroll_infos).each(function(index,item){
+                var other_fields = JSON.parse(item.other_fields);
+                _html += '<div class="weui_cells_title">参赛者'+ (index+1) +'</div>';
+                $.ajax({
+                    url: base.getEnrollInfo,
+                    async: false,
+                    type: "GET",
+                    data: {session:base.getItem('session'), uid:base.getItem('uid'), event_id:event_id},
+                    dataType: 'json',
+                    success: function (data){
+                        $.each(data.data.project,function(index, item){
+                            if(project_id == item.id){
+                                $.each(item.group,function(i,val){
+                                    if(group_id == val.id){
+                                        var template = JSON.parse(val.enroll_template);
+                                        $.each(template,function(i,val){
+                                            for(var i=0; i<val.length; i++){
+                                                var key = val[i].name;
+                                                 _html += '<div class="weui_cell">' + val[i].label + '<span class="weui_cell_desc">'+ other_fields[key] +'</span></div>'
+                                            }
+                                        })
+                                    }
+                                })
+                            }
+                        });
+                    }
+                });
+            })
 			$('#enroll_infos').append(_html);
-
         },
         error: function(res) {
             base.tips("网络有点卡");
         }
     });
-
-    function getGroup(project,group){
-		var result;
-		$.ajax({
-			url: base.eventProGroupInfo,
-			async: false,//改为同步方式
-			type: "GET",
-			data: {event_project_id : project,event_group_id : group},
-			success: function (data) {
-				result = data;
-			}
-		});
-		return result;
-	};
-
 	//赛事入场验证检测
 	$.get(base.eventSignCheck,{'event_enroll_id':enroll_id},function(data){
 		data.data.check ? $('#verification').html('已验证') : $('#verification').html('未验证');
 	},'json');
-
+    //微信订阅检查
+    if(base.isWeixin()){
+    	$.get(base.wxSubscribe,{openid:openid},function(data,status,xhr){
+    		if(status == 'success'){
+                if(data.data.subscribe == 1  &&  guide == 1){
+        			$("#guide").show();
+        		}
+        		if(data.data.subscribe == 0){
+        			$("#follow").show();
+        		}
+            }
+    	},'json');
+    };
 	//禁止微信
     wx.ready(function(){
         wx.hideOptionMenu();
     });
-
 });
 </script>
-
 </body>
 </html>

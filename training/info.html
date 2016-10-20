@@ -55,6 +55,7 @@
 var requireFun = ['zepto','base','login','tab','address','jweixin'];
 seajs.use(requireFun,function(zepto,base,login,tab,add,wx){
 var id = base.getURLVar('id');
+var getFrom = base.getURLVar('f');
 var detoff = true;
 var address ="";
 var currentLoaction = {};
@@ -82,8 +83,11 @@ var tab = new tabs.Scroll('.tab', {role: 'tab'});
         success: function(data){
             console.log(data);
             $('.tips').hide();
+            if(getFrom == 'q'){
+                base.setInviteCode(data.data.community_cid);
+            }
             if(!data.data){
-                base.tips('没有赛事出错!')
+                base.tips('没有培训组别!')
                 setTimeout(function(){
                     location.href = 'index.html';
                 },1000)
@@ -99,7 +103,7 @@ var tab = new tabs.Scroll('.tab', {role: 'tab'});
 
 			var _html = '<div class="weui_panel weui_panel_access"><div class="weui_media_box weui_media_appmsg bb list">' +
 						'<div class="weui_media_hd">' +
-							'<img alt="" src="' + base.imgURL + data.data.logo_image + '@150h_150w_1e_1c_10-2ci" class="weui_media_appmsg_thumb">' +
+							'<img alt="" src="' + base.testImg(data.data.logo_image) + '@150h_150w_1e_1c_10-2ci" class="weui_media_appmsg_thumb">' +
 						'</div>' +
 						'<div class="weui_media_bd">' +
 							'<h4 class="title">' + data.data.title + '</h4>' +
@@ -133,7 +137,7 @@ var tab = new tabs.Scroll('.tab', {role: 'tab'});
                     _html += '<div class="weui_media_box weui_media_text p10"><h4 class="weui_media_title time-icon">时间</h4> <p class="weui_media_desc">报名时间：' + data.data.signline + ' -- ' + data.data.deadline + '</p>';
 
 					if(data.data.begin_date){
-						_html +=  '<p class="weui_media_desc">比赛时间： ' + data.data.begin_date.substring(0,10) + ' -- ' + data.data.end_date.substring(0,10) + '</p>';
+						_html +=  '<p class="weui_media_desc">培训时间： ' + data.data.begin_date.substring(0,10) + ' -- ' + data.data.end_date.substring(0,10) + '</p>';
 					}
 
 					_html += '</div>';
@@ -189,12 +193,15 @@ var tab = new tabs.Scroll('.tab', {role: 'tab'});
 				$('.tips-message').hide();
 				$('#getInfo').html(data.data.content);
                 $('#getInfo').find('img').removeAttr("style");
+                //微信图片浏览API
+                previewImage('getInfo');
 			},
 			error: function(res){
 				base.tips("网络有点卡");
 			}
 		})
 	};
+
 
     //地理位置
     $('#synopsis').on('click','#map',function(){
@@ -205,7 +212,23 @@ var tab = new tabs.Scroll('.tab', {role: 'tab'});
         base.amapRoute(startMap,amap,address);
 	});
 
-    console.log(wx);
+    function previewImage(id){
+		$(document).on('click', '#'+ id +' img',function(event) {
+		   var imgArray = [];
+		   var curImageSrc = $(this).attr('src');
+		   var oParent = $(this).parent();
+		   if (curImageSrc && !oParent.attr('href')) {
+			   $('#'+ id +' img').each(function(index, el) {
+				   var itemSrc = $(this).attr('src');
+				   imgArray.push(itemSrc);
+			   });
+			   wx.previewImage({
+				   current: curImageSrc,
+				   urls: imgArray
+			   });
+		   }
+		});
+	};
 
 	//微信分享
     wx.ready(function(){

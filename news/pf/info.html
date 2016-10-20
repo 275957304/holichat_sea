@@ -21,11 +21,11 @@ body{margin:0;padding:0;font-family: Helvetica Neue,Helvetica,Arial,sans-serif;}
 .article-top .article-desc #source{margin-left:15px; color:#55769f;}
 #main{padding:10px;}
 #main img{max-width:100%;}
-#main p{display:block; margin:0; text-align: justify;}
+#main p{display:block; margin:0; text-align: justify; word-break: break-all;}
 </style>
 </head>
 <body>
-<div class="main-content">
+<div id="main" class="main-content">
 </div>
 <script type="text/javascript">
 var requireFun = ['zepto','base'];
@@ -35,18 +35,18 @@ seajs.use(requireFun, function(zepto,base){
 	var get_source = window.location.search.substr(1).split('&')[2];
 	var setUrl = '';
 	switch(get_type){
-		case 'pf' : setUrl = 'http://192.168.1.234/server4.0/index.php/news/pf/info' ; break;
-		case 'star' : setUrl = 'http://192.168.1.234/server4.0/index.php/news/star/info' ; break;
-		case 'community' : setUrl = 'http://192.168.1.234/server4.0/index.php/news/community/info' ; break;
+		case 'pf' : setUrl = base.pfInfo; break;
+		case 'star' : setUrl = base.starInfo ; break;
+		case 'community' : setUrl = base.communityInfo ; break;
 	};
 	$('#source').html(decodeURIComponent(get_source.split('=')[1]));
     $.ajax({
         type: 'get',
-        //url: newsPfInfo,
         url: setUrl,
         data:{id:get_id},
         dataType: 'json',
         success: function(data){
+			console.log(data)
 			if(data.data){
 				var html = '<div class="article-top">'  +
 							'<h2 class="title">' + data.data.title + '</h2>' +
@@ -54,12 +54,8 @@ seajs.use(requireFun, function(zepto,base){
 						'</div>' +
 						'<div id="main" class="article">'+ data.data.content +'</div>';
 				$('.main-content').append(html);
+				$('#main').find('img').removeAttr("style");
 				resizeIframe();
-			}else{
-				base.tips('没有内容!');
-				setTimeout(function(){
-					history.back();
-				},2000);
 			}
         },
         error: function(xhr, type) {
@@ -69,7 +65,7 @@ seajs.use(requireFun, function(zepto,base){
 
 	//优酷视频缩放
 	function resizeIframe(){
-		var bodyw = document.body.clientWidth - 20;
+		var bodyw = document.body.clientWidth - 40;
 		for(var i=0; i < document.getElementsByTagName("iframe").length; i++){
 			var scale = Math.min(bodyw/document.getElementsByTagName("iframe")[i].width, 1);
 			document.getElementsByTagName("iframe")[i].style.width = parseInt(document.getElementsByTagName("iframe")[i].width * scale) + 'px';

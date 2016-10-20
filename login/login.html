@@ -22,26 +22,25 @@ seajs.use(requireFun, function(zepto,base,wx,bs64){
 	$(function(){
 		if(base.isWeixin()){
 			var code = base.getURLVar('code'),
-				type = base.getURLVar('type'),
-				id = base.getURLVar('id');
-
+				back = window.location.hash,
+				longitude = base.getItem('longitude');
 			//设置经纬度
-			console.log(wx)
-			wx.ready(function(){
-				wx.getLocation({
-					type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
-					success: function (res) {
-						base.setItem("longitude", res.longitude); //经度
-						base.setItem("latitude", res.latitude);
-					}
+			if( longitude == '' || longitude == 'null'){
+				wx.ready(function(){
+					wx.getLocation({
+						type: 'wgs84', // 默认为wgs84的gps坐标，如果要返回直接给openLocation用的火星坐标，可传入'gcj02'
+						success: function (res) {
+							base.setItem("longitude", res.longitude); //经度
+							base.setItem("latitude", res.latitude);
+						}
+					});
 				});
-			});
-
+			}
+			//console.log(base.getItem('latitude'));
 			//获取code
 			if(code){
 				//登录
 				$.get(base.wxAccessToken,{'appid':'wxcc5c198d146a1779', "code":code, 'grant_type':'authorization_code'},function(data){
-					console.log(data)
 					var access_token = data.data.access_token,
 						openid = data.data.openid;
 						base.setItem("openid", openid);
@@ -61,18 +60,12 @@ seajs.use(requireFun, function(zepto,base,wx,bs64){
 						},
 						dataType: 'json',
 						success: function(data){
-							var device = data.data.device || "";
 							if(data.ret == 0){
 								base.setItem("session", data.data.session);
 								base.setItem("uid", data.data.uid);
-								base.setItem("device", device);
+								base.setItem("device", data.data.device);
 								base.setItem("platform", "weixin");
-								if(type == 'null'){
-		                            location.href = "../index.html"
-		                        }else{
-									id ? window.location.href = '../'+ type + '/info.html?id=' + id : window.location.href = '../index.html';
-		                        }
-
+								window.location.href =  back.substr(1);
 							};
 						},
 						error: function(res) {

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>保险选择</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="format-detection" content="telephone=no"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="distribution" content="global" />
+<meta name="author" content="活力圈" />
+<meta name="webcrawlers" content="all" />
+<link href="../dist/img/ico16.ico" rel="shortcut icon">
+<link rel="stylesheet" type="text/css" href="../dist/css/hlq.min.css">
+<script type="text/javascript" src="../dist/js/sea.js"></script>
+<script type="text/javascript" src="../dist/js/sea_config.js"></script>
+</head>
+<body>
+<header class="header">
+    <div class="bnt-back" onclick="history.back()"><i class="icon-back"></i></div>
+    <h1>保险信息</h1>
+</header>
+<div class="main">
+    <div class="info">
+        <div class="weui_media_box">
+            <div class="weui_media_bd">
+                <h4 class="weui_media_title"></h4>
+                <p class="weui_media_desc">单价:<span class="warning" id="amount"></span>/人</p>
+            </div>
+        </div>
+        <div class="info_txt"></div>
+        <i class="taggle_icon"></i>
+    </div>
+    <div id="list"></div>
+</div>
+<style>
+.info .weui_media_box{padding: 10px 10px 0}
+.insurance_info{font-size: 13px; color: #666; border-top:1px solid #eee; padding:10px 20px; line-height: 1.8;}
+.info_txt{padding: 10px; display: none;}
+.active .info_txt{display: block;}
+.info_txt a{color:#09bb07; font-weight: bold; margin-right: 10px;}
+</style>
+<script type="text/javascript">
+var requireFun = ['zepto','base','login','jweixin'];
+seajs.use(requireFun, function(zepto,base,login,wx){
+    var id = base.getURLVar('id'),
+        insurance_id = base.getURLVar('insurance_id'),
+        listTop ='',
+        html = '';
+
+    $.get(base.insuranceInfo,{'insurance_id':insurance_id},function(data){
+        console.log(data)
+        if(data.ret == '0'){
+            $('.weui_media_title').text(data.data.name)
+            $('#amount').text(data.data.amount);
+            $('.info_txt').html('<a href="terms.html?insurance_id='+ insurance_id +'">《保险条款》</a><a href="except.html?insurance_id='+ insurance_id +'">《除外责任条款》</a>')
+        }
+    },'json');
+
+    $.get(base.mineUserInsuranceInfo,{'insurance_order_id':id},function(data){
+        if(data.ret == '0'){
+            $(data.data.list).each(function(index,item){
+                var insurance_no = item.insurance_no || '保险公司正在生成保单号码...';
+                html += '<ul class="insurance_info"><li><span>保单号码：</span>'+ insurance_no +'</li><li><span>被保险人：</span>'+ item.truename +'</li><li><span>身份证：</span>'+ item.idcard +'</li><li><span>联系电话：</span>'+ item.phone +'</li></ul>'
+
+            })
+            $("#list").append(html)
+        }
+    },'json');
+
+    $('.taggle_icon').on('click',function(){
+        if( $(this).parents('.info').hasClass('active') ){
+            $(this).parents('.info').removeClass('active');
+        }else{
+            $(this).parents('.info').addClass('active');
+        }
+    })
+
+
+	//禁止微信
+    wx.ready(function(){
+        wx.hideOptionMenu();
+    });
+
+})
+</script>
+</body>
+</html>

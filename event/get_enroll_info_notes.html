@@ -14,7 +14,7 @@
 <link href="../dist/img/ico16.ico" rel="shortcut icon">
 <link rel="stylesheet" type="text/css" href="../dist/css/hlq.min.css">
 <script type="text/javascript" src="../dist/js/sea.js"></script>
-<script type="text/javascript" src="../dist/js/sea_config.js"></script>,'weixin'
+<script type="text/javascript" src="../dist/js/sea_config.js"></script>
 </head>
 <body class="b-white">
 <header class="header">
@@ -67,8 +67,7 @@ seajs.use(requireFun, function(zepto,base,wx){
         }
     });
     $('#agreeBtn').on('tap',function(){
-        //window.location.href = 'enroll.html?id=' + id + "&project_id=" + project_id + "&group_id=" + group_id;
-        window.location.href = 'get_enroll_info.html?id=' + id;
+        window.location.href = 'get_enroll_info.html?id=' + id
     })
 	//禁止微信
     wx.ready(function(){

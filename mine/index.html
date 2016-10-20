@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>我的赛事活动</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="format-detection" content="telephone=no"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="distribution" content="global" />
+<meta name="author" content="活力圈" />
+<meta name="webcrawlers" content="all" />
+<link href="../dist/img/ico16.ico" rel="shortcut icon">
+<link rel="stylesheet" type="text/css" href="../dist/css/hlq.min.css">
+<script type="text/javascript" src="../dist/js/sea.js"></script>
+<script type="text/javascript" src="../dist/js/sea_config.js"></script>
+</head>
+<style>
+	.tab-nav li a{display:block;color: #777;}
+	.tab-nav li.current a{color:#f6443a;}
+</style>
+<body>
+<header class="header">
+	<a class="bnt-back" href="../index.html"><span class="icon-back"></span></a>
+    <h1>已报名</h1>
+	<a class="bnt_right" href="../insurance/list.html"><span class="hr_btn">保险订单</span></a>
+</header>
+<div class="main">
+	<div class="panel">
+		<div class="tab tab_fixed">
+			<ul class="tab-nav">
+				<li class="current">已报名</li>
+				<li><a href="user_no_pay_act_list.html">未支付</a></li>
+			</ul>
+			<div id="list" class="weui_panel_bd"></div>
+		</div>
+	</div>
+</div>
+<div id="back_top"></div>
+<script type="text/javascript">
+var requireFun = ['zepto','base','login','jweixin','dropload'];
+seajs.use(requireFun, function(zepto,base,login,wx){
+	var page = 1,
+		page_size = 10;
+	console.log(base.getItem('session'));
+
+	$('.main').dropload({
+		scrollArea : window,
+		loadDownFn : function(me){
+			$.ajax({
+				type: 'GET',
+				url: base.userActList,
+				data: {
+					page_size:page_size,
+					page:page,
+					session: base.getItem('session')
+				},
+				dataType: 'json',
+				success: function(data){
+					page++;
+					response = data.data.list;
+					console.log(response);
+					var _html = '';
+					if(data.data.list.length < 1){
+						me.lock();
+						me.noData();
+					}
+					$('#list').append(_html);
+					for(var i = 0; i < response.length; i++){
+						var getInfo = base.proGroupInfo(response[i].enroll_type,response[i].project_id,response[i].group_id),
+							state = base.setState(response[i].pay_status,response[i].enroll_status,response[i].is_confirm)
+							href = 'javascript:alert(\'您的报名'+ state.text + '\')';							
+						switch(response[i].enroll_type){
+							case 'a':  state.isLink ? href = '../activity/order_info.html?enroll_id=' + response[i].enroll_id + '&id='+ response[i].org_act_id : ''; break;  //活动
+							case 'e':  state.isLink ? href = '../event/order_info.html?enroll_id=' + response[i].enroll_id + '&id='+ response[i].org_act_id : '' ;break;  //活动
+							case 't':  state.isLink ? href = '../training/order_info.html?enroll_id=' + response[i].enroll_id + '&id='+ response[i].org_act_id : '' ;break;  //活动
+							//这里还要判断一下其它内的
+						};
+					_html +='<a  href="'+ href +'" id="'+ response[i].enroll_id +'" class="weui_media_box weui_media_appmsg list">' +
+							'<div class="weui_media_hd"><img alt="" src="' + base.testImg(response[i].logo_image) + '@150h_150w_1e_1c_10-2ci" class="weui_media_appmsg_thumb"></div>'+
+							'<div class="weui_media_bd">'+
+							'<h4 class="title">'+ response[i].title +'</h4>' +
+							'<p class="weui_media_desc">项目：'+ getInfo.data.project +'</p><p class="weui_media_desc">组别：'+ getInfo.data.group +'</p></div><div class="weui_cell_ft">'+ state.text +'</div></a>';
+					};
+					$('#list').append(_html);
+					me.resetload();
+				},
+				error: function(xhr, type){
+					base.tips("网络有点卡");
+				}
+			});
+		}
+	});
+
+
+	//禁止微信
+	if(base.isWeixin()){
+		wx.ready(function(){
+			wx.hideOptionMenu();
+		});
+	};
+
+});
+</script>
+</body>
+</html>

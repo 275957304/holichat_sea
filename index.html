@@ -27,7 +27,7 @@
 <header class="header">
 	<a href="login/city.html" class="btn_city"></a>
 	<h1>活力圈</h1>
-	<a class="bnt_right" href="mine/user_act_list.html"><span class="icon_my"></span></a>
+	<a class="bnt_right" href="mine/index.html"><span class="icon_my"></span></a>
 </header>
 <div class="main">
 	<section class="entry_container">
@@ -45,11 +45,8 @@
 </div>
 
 <script type="text/javascript">
-// define(function(require, exports, module){
-// 	require('http://webapi.amap.com/maps?v=1.3&key=faaddee69a0a4d1dca3576d2ae9c2ff6&plugin=AMap.Geocoder');
-// });
-var requireFun = ['zepto/zepto.min','base/base','address/address','login/login','appDown/app-banner','category/category','dropload','http://webapi.amap.com/maps?v=1.3&key=faaddee69a0a4d1dca3576d2ae9c2ff6&plugin=AMap.Geocoder'];
-seajs.use(requireFun, function(zepto,base,add,login,app,sort){
+var requireFun = ['zepto/zepto.min','base/base','address/address','login/login','appDown/app-banner','category/category','dropload','map/amap'];
+seajs.use(requireFun, function(zepto,base,add,login,app,sort,drop,map){
 	$(function(){
 		var longitude = base.getItem('longitude'),
 			latitude = base.getItem('latitude'),
@@ -57,27 +54,7 @@ seajs.use(requireFun, function(zepto,base,add,login,app,sort){
 			city_name =  base.getItem('city_name'),
 			page_size = 10,
 			page = 1;
-		$('.btn_city').text(city_name);
-		if(!city_id || !city_name){
-			//高德逆编辑获取城市与城市ID
-			var map = new AMap.Map("container",{resizeEnable: true}),
-				geocoder = new AMap.Geocoder({radius: 1000,extensions: "all"}),
-				lnglatXY = (longitude + ',' + latitude).split(',');
-				console.log(lnglatXY);
-				geocoder.getAddress(lnglatXY, function(status, result){
-					if (status === 'complete' && result.info === 'OK') {
-						console.log(result);
-						var city = result.regeocode.addressComponent.adcode.substring(0,4) + '00';
-						base.setItem("city_id", city);
-						base.setItem("city_name", result.regeocode.addressComponent.city);
-						$('.btn_city').text(result.regeocode.addressComponent.city);
-						console.log(city);
-						console.log(result.regeocode.addressComponent.city);
-					}
-				});
-
-		};
-
+		$('.btn_city').show().text(city_name);
 		//推荐内容加载
 		$('.main').dropload({
 			scrollArea : window,
@@ -91,6 +68,7 @@ seajs.use(requireFun, function(zepto,base,add,login,app,sort){
 					},
                     dataType: 'json',
                     success: function(data){
+						map.getLocation();
 						page++;
 						response = data.data.list;
 						var result = '';
@@ -105,7 +83,7 @@ seajs.use(requireFun, function(zepto,base,add,login,app,sort){
 								var detail = base.getItemInfo(action.type,action.data.id);
 								var sort_name = sort.getData(detail.category_id);
 								result += '<a class="rec_link weui_media_box" href="'+ detail.href +'">';
-								result += '<div class="rec_img"><img src="'+ base.imgURL + data.data.list[i].image +'">'+ detail.status +'</div>';
+								result += '<div class="rec_img"><img src="'+ base.testImg(data.data.list[i].image) +'">'+ detail.status +'</div>';
 								result += '<div class="text_box"><h3 class="weui_media_title">'+ data.data.list[i].title +'</h3>';
 								result += '<div class="rec_txt"><span class="price">¥'+ parseFloat(detail.price,10) +'起</span><span class="tip">'+ sort_name.name +'</span></div>';
 								result += '</div>';
@@ -116,7 +94,7 @@ seajs.use(requireFun, function(zepto,base,add,login,app,sort){
 						me.resetload();
                     },
                     error: function(xhr, type){
-                        base.tips(xhr);
+                        //base.tips(xhr);
                         // 即使加载出错，也得重置
                         me.resetload();
                     }

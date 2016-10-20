@@ -14,14 +14,15 @@ seajs.config({
 		"jweixin" : "weixin/jweixin",
 		"address" : "address/address.js",  //地址相关
 		"dropload" : "dropload/dropload.min.js", //下拉加载
+		"jsform" : "jsform/jsform.js", //下拉加载
 		"idcard" : "idcard.js",
 		"base64" : "Base64.js",
 	},
 
 	map:[
 		//可配置版本号
-		['.css', '.css?v=' + 1],
-		['.js', '.js?v=' + 1]
+		['.css', '.css?v=' + 1.1],
+		['.js', '.js?v=' + 1.1]
 	],
 
 
@@ -34,6 +35,5 @@ seajs.config({
 	// 文件编码
 	charset: 'utf-8'
 });
-
 
 //require.resolve，会利用模块系统的内部机制对传入的字符串参数进行路径解析。

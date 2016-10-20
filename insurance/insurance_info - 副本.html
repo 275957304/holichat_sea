@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>保险详情</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1, maximum-scale=1, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="format-detection" content="telephone=no"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="distribution" content="global" />
+<meta name="author" content="活力圈" />
+<meta name="webcrawlers" content="all" />
+<link href="../dist/img/ico16.ico" rel="shortcut icon">
+<link rel="stylesheet" type="text/css" href="../dist/css/hlq.min.css">
+<script type="text/javascript" src="../dist/js/sea.js"></script>
+<script type="text/javascript" src="../dist/js/sea_config.js"></script>
+</head>
+<body>
+<header class="header">
+    <div class="bnt-back" onclick="history.back()"><i class="icon-back"></i></div>
+    <h1>保险</h1>
+    <a class="bnt_right" href="../index.html"><span class="icon_home"></span></a>
+</header>
+<footer class="footer">
+	<div class="btn_group insurance_footer">
+		<div class="btn_default">总计:¥<span id="total"></span></div>
+		<div class="btn_default"><a class="weui_btn weui_btn_warn" id="submit" href="javascript:void(0)">提交订单</a></div>
+	</div>
+</footer>
+<div class="main">
+    <div class="weui_cells">
+        <div style="padding:10px 10px 0;" id="taggle" class="weui_cell">
+            <div class="weui_cell_bd weui_cell_primary">
+                <p id="name"></p>
+                <p class="dos"><span id="amount" class="text-danger"></span></p>
+            </div>
+        </div>
+        <div id="clause" class="insuran_txt"></div>
+        <i class="taggle_icon"></i>
+    </div>
+    <div class="insuran_from">
+        <div class="weui_cells">
+            <div class="weui_cell">
+                <div class="weui_cell_hd">
+                    <label for="" class="weui_label">生效日期</label>
+                </div>
+                <div class="weui_cell_bd weui_cell_primaryweui_cell">
+                    <input type="text" class="weui_input" id="picktime" placeholder="点击选择日期" readonly="">
+                </div>
+            </div>
+            <div class="weui_cell">
+                <div class="weui_cell_hd"><label for="" class="weui_label">投保人数</label></div>
+                <div class="weui_cell_bd weui_cell_primary">
+                    <input class="weui_input" id="peopleNum" type="number" pattern="[1-9]*" placeholder="1">
+                </div>
+            </div>
+        </div>
+        <div id="tempList">
+        </div>
+    </div>
+</div>
+<style>
+.fields{margin-bottom: 10px;}
+.fields .weui_media_title{margin-bottom: 5px;}
+.insuran_txt a{color: #09bb07; font-size: 14px; margin-right: 10px; font-weight: bold}
+.weui_cells{margin: 0;}
+.insuran_from{ margin-top: 20px; border-radius: 6px;}
+.insurance_footer .btn_default{background-color: #eee; border-top: 1px solid #ccc; line-height: 43px;}
+.mt_body{height:400px;overflow:hidden;position:relative}
+.mt_panel{background-color:#F7F7F7;padding:10px 0 0 0}
+.mt_panel h3{color:#4eccc4;font-size:16px;text-align:center;font-weight:400}
+.mt_day,.mt_hour,.mt_minute,.mt_month,.mt_second,.mt_year{float:left;width:33.33%;height:50%;vertical-align:top;text-align:center;overflow:hidden}
+.mt_body ul li{height:40px;line-height:40px;font-size:18px;color:#555}
+.mt_indicate,.mt_indicate:after{top:78px;position:absolute;border-top:1px solid #e9e9e9;width:100%;height:0;font-size:0}
+.mt_indicate:after{content:"";top:40px}
+.mt_indicate.cate2{top:280px}
+.mt_body li.selected{color:#4eccc4}
+.mt_body ul .mt_note{font-size:12px;color:#000}
+.mt_confirm{text-align:center;margin-top:10px;overflow:hidden}
+.mt_cancel,.mt_ok,.mt_setnow{display:inline-block;float:left;vertical-align:top;width:50%;height:45px;line-height:45px;border:1px solid #4eccc4;color:#4eccc4;box-sizing:border-box;border-bottom:none;border-right:none}
+.mt_ok{margin-left:-1px}
+.mt_mask{width:100%;height:100%;-moz-transition:opacity .5s linear 0s;-webkit-transition:opacity .5s linear 0s;-o-transition:opacity .5s linear 0s;-ms-transition:opacity .5s linear 0s;transition:opacity .5s linear 0s;position:absolute;top:0;left:0;display:block;visibility:hidden;background:#000;opacity:0;z-index:10}
+.mt_mask.show{visibility:visible;opacity:.25}
+.mt_poppanel{-moz-transition:-moz-transform .3s ease-in-out 0s;-ms-transition:-ms-transform .3s ease-in-out 0s;-webkit-transition:-webkit-transform .3s ease-in-out 0s;-o-transition:-o-transform .3s ease-in-out 0s;transition:transform .3s ease-in-out 0s;-ms-transform:translate3d(0,100%,0);-moz-transform:translate3d(0,100%,0);-webkit-transform:translate3d(0,100%,0);-o-transform:translate3d(0,100%,0);transform:translate3d(0,100%,0);position:fixed;bottom:0;left:0;width:100%;height:auto;z-index:11;-webkit-user-select:none}
+.mt_poppanel.show{-ms-transform:translate3d(0,0,0);-moz-transform:translate3d(0,0,0);-webkit-transform:translate3d(0,0,0);-o-transform:translate3d(0,0,0);transform:translate3d(0,0,0)}
+.mt_sepline{width:100%;height:0;border-top:1px solid #4eccc4;clear:both}
+</style>
+<script type="text/javascript">
+var requireFun = ['zepto','base','mdatetimer','login','idcard','base64','jweixin'];
+seajs.use(requireFun, function(zepto,base,mdate,login,idcard,bs64,wx){
+    var insurance_id = base.getURLVar('insurance_id'),
+        type = base.getURLVar('type'),
+        total = 0;
+        id = base.getURLVar('id'),
+        time ='',
+        min = 1;
+
+    $('#picktime').mdatetimer({
+		mode : 1, //时间选择器模式：1：年月日，2：年月日时分（24小时），3：年月日时分（12小时），4：年月日时分秒。默认：1
+		format : 2, //时间格式化方式：1：2015年06月10日 17时30分46秒，2：2015-05-10  17:30:46。默认：2
+		years : [2016, 2017, 2018] //年份数组
+	});
+
+    $('#picktime').on('change',function(){
+        var min = $(this).val();
+        console.log(min)
+    })
+
+    $.get(base.insuranceInfo,{'insurance_id':insurance_id},function(data){
+        console.log(data)
+        var fieldsArr = JSON.parse(data.data.other_fields),fields = "";
+        if(fieldsArr.length > 0){
+            $.each(fieldsArr,function(i,v){
+                fields += '<div class="fields"><h4 class="weui_media_title">'+ v.title +'</h4><p class="weui_media_desc">'+ v.content +'</p></div>';
+            });
+            //fields += '<a href="#">《保险条款》</a><a href="#">《除外责任条款》</a>';
+        }else{
+            fields += '<p class="weui_media_desc">暂无内容</p>';
+        }
+        total = data.data.amount;
+        $('#company').text(data.data.company);
+        $('#name').text(data.data.name);
+        $('#amount').text('¥' + data.data.amount);
+        $('#clause').html(fields);
+        $('#total').text(total)
+    },'json')
+
+    $("#taggle,.taggle_icon").tap(function(){
+        $('#clause').find('img').attr("style","");
+        if( $(this).parents('.weui_cells').hasClass('active') ){
+            $(this).parents('.weui_cells').removeClass('active')
+        }else{
+            $(this).parents('.weui_cells').addClass('active');
+            $(this).parents('.weui_cells').siblings().removeClass('active')
+        }
+    });
+    setTemplate(min);
+    $('#peopleNum').on('change',function(){
+        var min = $(this).val();
+        $('#total').text(total*min)
+        setTemplate(min);
+    })
+
+    function setTemplate(min){
+        $('#tempList').empty();
+        var template="";
+        for(var i=1; i <= min; i++){
+            template +='<div class="weui_cells_from">'
+            template +='<div class="weui_cells_title">被保人'+ i +'</div>'
+            template +='<div class="weui_cell"><div class="weui_cell_hd"><label class="weui_label">姓名</label></div><div class="weui_cell_bd weui_cell_primary"><input type="text" data-name="姓名" name="truename" placeholder="请输入姓名" class="weui_input"></div></div>'
+            template +='<div class="weui_cell"><div class="weui_cell_hd"><label class="weui_label">身份证</label></div><div class="weui_cell_bd weui_cell_primary"><input type="text" data-name="身份证" name="idcard" placeholder="请输入身份证" class="weui_input"></div></div>'
+            template +='<div class="weui_cell"><div class="weui_cell_hd"><label class="weui_label">手机号码</label></div><div class="weui_cell_bd weui_cell_primary"><input type="text" data-name="手机号码" name="phone" placeholder="请输入手机号码" class="weui_input"></div></div>'
+            template +='</div>'
+        }
+        $('#tempList').append(template);
+    }
+
+    $('#submit').on('tap',function(){
+        var len = $(".weui_cells_from").length,
+            key = ['truename','idcard','phone'],
+            data = [],
+            base64 =""
+            parameter = {};
+        for(var i=0; i<len; i++){
+            var insurance_data ={};
+            $(key).each(function(index,item){
+                var val = $("input[name='"+ item +"']").eq(i).val(),
+                    thisName = $("input[name='"+ item +"']").eq(i).data('name');
+                if(val ==''){
+                    base.tips("请填写被保人"+ (i+1) + thisName );
+                    return false;
+                }
+                if(item == 'idcard'){
+                    if(!checkCard(val)){
+                        base.tips("写被保人"+ (i+1) +"身份证号码不正确");
+						return false;
+                    }
+                }
+                if(item == 'phone'){
+                    if(!base.isPhone(val)){
+                        base.tips("写被保人"+ (i+1) +"电话号码不正确");
+						return false;
+                    }
+                }
+
+                insurance_data[item] = val
+            })
+            data.push(insurance_data)
+        }
+
+        var jsonDate = eval("'" + JSON.stringify(data) + "'");
+        base64 = BASE64.encoder(jsonDate);
+        console.log(base64)
+
+        parameter = {
+            business_type : type,
+            business_id: id,
+            insurance_id : insurance_id,
+            effective_date : '2016-10-22',
+            session: base.getItem('session'),
+            insurance_data: base64
+        };
+
+
+        $.ajax({
+            type: 'POST',
+            url: base.addInsuranceData,
+            data: parameter,
+            dataType: 'json',
+            beforeSend : function(){
+                base.tips("加载中...",1);
+            },
+            success: function(data){
+                if(data.ret == 0){
+                    var order = data.data.order_no,
+                        amount = data.data.amount;
+                    window.location.href = "../pay/weixin_unifiedorder.html?source=insurance&order=" + order + "&amount=" + amount
+                }else{
+                    switch (data.ret) {
+                        case 7304:
+                            base.tips("生效日期不可早于当前日期+2天");  //430482198706231859
+                            break;
+                        default:
+                            base.tips(data.ret);
+                    }
+                }
+            },
+            error: function(xhr) {
+				console.log(xhr)
+            }
+        });
+
+    });
+
+	//禁止微信
+    wx.ready(function(){
+        wx.hideOptionMenu();
+    });
+
+})
+</script>
+</body>
+</html>

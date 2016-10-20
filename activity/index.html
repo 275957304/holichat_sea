@@ -80,7 +80,7 @@ seajs.use(requireFun, function(zepto,base,login,dropload,add,wx){
 	                    };
 	                    for(var i = 0; i < response.length; i++){
 	                        _html +='<a class="weui_media_box weui_media_appmsg list" href="info.html?id='+ response[i].activity_id +'&type=activity">'
-	                                +'<div class="weui_media_hd"><img alt="" src="' + base.imgURL + response[i].logo_image + '@150h_150w_1e_1c_10-2ci" class="weui_media_appmsg_thumb"></div>'
+	                                +'<div class="weui_media_hd"><img alt="" src="' + base.testImg(response[i].logo_image) + '@150h_150w_1e_1c_10-2ci" class="weui_media_appmsg_thumb"></div>'
 	                                +'<div class="weui_media_bd"><h4 class="title">' + response[i].title +' </h4>'
 	                                +'<div class="list_doce"><span class="price">¥<em>' + parseFloat(response[i].cost,10) +'</em>起</span> ' + response[i].name +'</div>'
 	                                +'<div class="list_doce"><p class="pull-right"> ' + base.getCurrentStatus(response[i].signline,response[i].deadline,response[i].begin_date,response[i].end_date) +' </p> <span class="list-city">' + response[i].address +' </span> <span class="list-follow">' + response[i].attention_num +'</span></div></div>'

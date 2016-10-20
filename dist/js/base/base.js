@@ -1,9 +1,10 @@
 define(function(require, exports, module) {
 	//var baseURL = "http://121.41.0.124:81/";
-	var baseURL = "http://192.168.1.234/server4.0/index.php/";
+	var baseURL = "http://192.168.24.250/holichat_server/index.php/";  //  15920150083 stephenxu
 	var H = {
-		loginURL : "http://m.holichat.com/ceshi/login/login.html", //微信登录回调地址
+		loginURL : "http://m.holichat.com/ceshi/login/", //微信登录回调地
         imgURL : "http://holichat-res-inside.img-cn-hangzhou.aliyuncs.com/uploads/",
+		imgHath : "http://holichat-res-inside.oss-cn-hangzhou.aliyuncs.com/",
         login : baseURL + 'login/api/login',    // 登录
         eventList : baseURL + 'event/view/event_list',     // 赛事列表
         eventSearch: baseURL + 'event/view/event_search',  // 赛事搜索
@@ -13,23 +14,41 @@ define(function(require, exports, module) {
         eventEnroll : baseURL + 'event/interface/event_enroll', // 赛事报名
         eventOrderInfo : baseURL + 'event/interface/event_order_info',  //获取赛事订单详细
         eventProGroupInfo : baseURL + 'event/view/event_pro_group_info',   //赛事项目和组别
+		eventIsEnroll : baseURL + 'event/interface/check_is_enroll',  //赛事是否报名
 		enrollCheck : baseURL + 'event/interface/event_enroll_check', //赛事报名检测
         getGeocoding : baseURL + 'other/api/get_geocoding',   //逆地理编码
-        wxSign : baseURL +'other/api/wx_js_sign',  //微信JS签名
+        wxSign : 'http://app.holichat.com/other/api/wx_js_sign',  //微信JS签名  这里会服数据错误
+        //wxSign : baseURL +'other/api/wx_js_sign',  //微信JS签名
         checkSession : baseURL +'login/api/check_session', //会话检查
         eventEnrollSelect : baseURL + "event/interface/event_enroll_select", //选择赛事支付
         weixinUnifiedorder : baseURL + 'pay/api/weixin_unifiedorder', //微信支付接口
         eventSignCheck : baseURL + 'event/interface/event_sign_check', //赛事入场验证检测
+
+		//这里要修改
         eventTeamInfo : baseURL + 'event/team/event_team_info',  //赛事队伍信息
+
+		eventCoupon : baseURL + 'event/coupon/is_event_coupon',  //赛事是否优惠码
+		eventCouponInfo : baseURL + 'event/coupon/event_coupon_info',  //赛事优惠码信息
 		otherLogin : baseURL + 'login/sdk/other_login', //第三方登录
 		wxAccessToken : baseURL + 'login/sdk/wx_access_token', // 获取微信令牌
         wxSubscribe : baseURL + 'other/api/wx_subscribe', //微信订阅检查
         newsPfInfo : baseURL + 'news/pf/info', //活力圈资讯内容
 		recommend : baseURL + 'ad/home/recommend',  //主页推荐广告
+		insurance : baseURL + 'insurance/view/insurance_list',  //个人险列表
+		insuranceInfo : baseURL + 'insurance/view/insurance_info',  //个人保险内容
+		addInsuranceData : baseURL + 'insurance/interface/add_insurance_data',  //提交保险订单
+		userInsuranceList : baseURL + 'mine/user/user_insurance_list',  //我的  保险列表
+		mineUserInsuranceInfo : baseURL + 'mine/user/user_insurance_info',  //我的  保险信息
+		userInsuranceInfo : baseURL + 'insurance/view/user_insurance_info', //报名内容
 
-		//userEvent : baseURL + 'event/user/user_event',   //我的报名赛事
+
+		pfInfo : baseURL + 'news/pf/info', //活力圈资讯内容
+		starInfo : baseURL + 'news/star/info', //全民星运动内容
+		communityInfo : baseURL + 'news/community/info', //社团资讯内容
 		userActList : baseURL + 'mine/user/user_act_list', //我的已报名列表
 		userNoPayList : baseURL + 'mine/user/user_no_pay_act_list', //我的未支付列表
+		inviteCode : baseURL + 'user/api/invite_code',  //用户绑定社团
+		userEventContent : baseURL + 'mine/user/user_event_content', //我的赛事报名内容
 
 		activityList : baseURL + 'activity/view/activity_list',  //活动列表
 		activitySearch : baseURL + 'activity/view/activity_search', //活动搜索
@@ -42,6 +61,9 @@ define(function(require, exports, module) {
 		activityGetEnrollICheck : baseURL + 'activity/interface/activity_enroll_check', //活动报名检测
 		activitySignCheck : baseURL + 'activity/interface/activity_sign_check', //活动入场证检测
 		activityEnrollSelect : baseURL + "activity/interface/activity_enroll_select", //选择活动支付
+		activityInsurance : baseURL + "insurance/view/user_insurance_activity_list", //活动保险
+		activityCoupon : baseURL + 'activity/coupon/is_activity_coupon',  //活动是否优惠码
+		activityCouponInfo : baseURL + 'activity/coupon/activity_coupon_info',  //活动优惠码信息
 
 		trainingList : baseURL + 'training/view/training_list',     // 培训列表
 		trainingSearch: baseURL + 'training/view/training_search',     // 培训搜索
@@ -55,6 +77,11 @@ define(function(require, exports, module) {
 		trainingProGroupInfo : baseURL + 'training/view/training_pro_group_info', //培训项目和组别
 		trainingSignCheck : baseURL + 'training/interface/training_sign_check', //培训入场证检测
 		trainingEnrollSelect : baseURL + "training/interface/training_enroll_select", //选择培训支付
+		trainingInsurance : baseURL + "insurance/view/user_insurance_training_list", //培训保险
+		trainingCoupon : baseURL + 'training/coupon/is_training_coupon',  //培训是否优惠码
+		trainingCouponInfo : baseURL + 'training/coupon/training_coupon_info',  //培训优惠码信息
+
+		stsAuth : baseURL + 'sys/api/sts_auth',  //获取STS授权
 
 		setItem:function(a,b){
 			if(window.localStorage){
@@ -121,7 +148,7 @@ define(function(require, exports, module) {
 			if(today < Date.parse(signlineDate)){
 				$('.footer').append('<a class="weui_btn weui_btn_disabled weui_btn_default" onclick="alert(\'预热中\')" href="javascript:void(0)">预热中</a>');
 			}else if(today < Date.parse(deadlineDate)){
-				$('.footer').append('<a class="weui_btn weui_btn_warn" href="get_enroll_info_notes.html?id=' + id +' ">我要报名</a>');
+				$('.footer').append('<a class="weui_btn weui_btn_warn" href="get_enroll_info_notes.html?id=' + id +'">我要报名</a>');
 			}else if(today < Date.parse(beginDate)){
 				$('.footer').append('<a class="weui_btn weui_btn_disabled weui_btn_default" onclick="alert(\'即将开始\')" href="javascript:void(0)">即将开始</a>');
 			}else if(today < Date.parse(endDate)){
@@ -144,7 +171,6 @@ define(function(require, exports, module) {
 					data: data,
 					dataType: 'json',
 					success: function (data) {
-
 						result = data;
 					}
 				});
@@ -229,11 +255,17 @@ define(function(require, exports, module) {
 				window.location.href = "http://m.amap.com/navi/?start="+ location + "&dest=" + endMap +"&destName="+ address +"&key=faaddee69a0a4d1dca3576d2ae9c2ff6"
 			}
 		},
-		payState : function(status){
-			switch (status) {
-				case 'C': return '<span style="font-size:12px;">支付中</span>'; break;
-				case 'S': return '<span style="font-size:12px;">支付成功</span>'; break;
-				case 'N': return '<span style="font-size:12px;">未支付</span>'; break;
+
+		setState : function(pay_status,enroll_status,is_confirm){
+			var state = {}
+		    if(enroll_status == "NF" || enroll_status == "NL"){
+				return state={isLink:false,text:'审核中',color:'gary'};
+			}else if(enroll_status == "F"){
+				return state={isLink:false,text:'审核未通过',color:'red'};
+			}else if(enroll_status == "S" || enroll_status == "E"){
+				if (is_confirm == "S" && (pay_status == "S" || pay_status == "E")){
+	              return state={isLink:true,text:'已支付',color:'green'};
+	            }
 			}
 		},
 		getItemInfo : function(type,id){
@@ -247,11 +279,14 @@ define(function(require, exports, module) {
 			$.ajax({type:'GET',url: url,dataType:'json',async:false,success:requireData,error:errorData});
 			function requireData(data){
 				if(data.ret == 0){
-					//console.log(data);
+					console.log(data);
 					info = {
 						type : 'event',
 						href : type + '/info.html?id=' + id,
 						price : data.data.cost,
+						begin_date: data.data.begin_date,
+						region_id: data.data.region_id,
+						address: data.data.address,
 						category_id : data.data.sports_category_id,
 						status : that.getCurrentStatus(data.data.signline,data.data.deadline,data.data.begin_date,data.data.end_date)
 					}
@@ -260,73 +295,41 @@ define(function(require, exports, module) {
 			function errorData(xhr){
 				console.log(xhr);
 			}
-			//console.log(info);
 			return info
+		},
+		testImg : function(src){
+			return src.length > 1 ? this.imgURL +  src : this.imgURL + 'm/df/icon_256.png'
+		},
+		setInviteCode : function(cid, session){
+			$.get(this.inviteCode,{community_cid:cid,session:this.getItem('session')},function(data){
+				console.log("绑定社团成功");
+			},'json')
+		},
+		setOpaction : function(min,max){
+			var i, s="";
+			s = '<select class="weui_select" id="select">';
+			for(i= min; i <= max; i++){
+				s += '<option value="'+ i +'">'+ i +'</option>';
+			}
+			s += '</select>';
+			return s;
+		},
+		unique : function(data){
+			data = data || [];
+			var a = {};
+			for (var i=0; i<data.length; i++) {
+				var v = data[i];
+				if (typeof(a[v]) == 'undefined'){
+					a[v] = 1;
+				}
+			};
+			data.length=0;
+			for (var i in a){
+				data[data.length] = i;
+			}
+			return data;
 		}
+
 	};
 	module.exports = H;
-
-})
-
-// $(function(){
-// 	//解决输入框input获取焦点时，虚拟键盘会把fixed元素顶上去
-// 	$('input[name = text]').on('focus',function(){
-// 		$('.footer,.header').css('position','static');
-// 	}).on('blur',function(){
-// 		$('.footer,.header').css({'position':'fixed','bottom':'0'})
-// 	})
-//
-// })
-
-
-
-
-//计算字符串长度
-String.prototype.strLen = function() {
-    var len = 0;
-    for (var i = 0; i < this.length; i++) {
-        if (this.charCodeAt(i) > 255 || this.charCodeAt(i) < 0) len += 2; else len ++;
-    }
-    return len;
-}
-
-//将字符串拆成字符，并存到数组中
-String.prototype.strToChars = function(){
-    var chars = new Array();
-    for (var i = 0; i < this.length; i++){
-        chars[i] = [this.substr(i, 1), this.isCHS(i)];
-    }
-    String.prototype.charsArray = chars;
-    return chars;
-}
-
-//判断某个字符是否是汉字
-String.prototype.isCHS = function(i){
-    if (this.charCodeAt(i) > 255 || this.charCodeAt(i) < 0)
-        return true;
-    else
-        return false;
-}
-
-//截取字符串（从start字节到end字节）
-String.prototype.subCHString = function(start, end){
-    var len = 0;
-    var str = "";
-    this.strToChars();
-    for (var i = 0; i < this.length; i++) {
-        if(this.charsArray[i][1])
-            len += 2;
-        else
-            len++;
-        if (end < len)
-            return str;
-        else if (start < len)
-            str += this.charsArray[i][0];
-    }
-    return str;
-}
-
-//截取字符串（从start字节截取length个字节）
-String.prototype.subCHStr = function(start, length){
-    return this.subCHString(start, start + length);
-}
+});

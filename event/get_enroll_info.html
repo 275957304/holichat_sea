@@ -39,13 +39,8 @@
     </div>
 	<p id="d"></p>
 </div>
-<div class="tip_box"></div>
 <style>
 .tab-content .weui_cells{margin-top:-1px;}
-.tip_box{position: absolute; left:0; right:0; bottom: 40px;}
-.tip{background: rgba(0,0,0,.4); color: #fff; margin: 5px; border-radius:3px; padding:5px 10px;}
-.tip .weui_icon_cancel{float: right;}
-.tip .weui_icon_cancel:before{color: #fff;}
 </style>
 <script type="text/javascript">
 var requireFun = ['zepto','base','login','tab','jweixin'];
@@ -67,6 +62,7 @@ seajs.use(requireFun, function(zepto,base,login,tab,wx){
             base.tips("加载中...",1);
         },
         success: function(data){
+            console.log(data)
             $('.tips').hide();
 			if(data.data.project.length == 0){
 				base.tips("没有组别信息");
@@ -123,9 +119,16 @@ seajs.use(requireFun, function(zepto,base,login,tab,wx){
 			_html += '<div class="weui_cells_title">'+ item.title +'</div><div class="weui_cells weui_cells_checkbox">';
             var title = item.title;
 			$.each(item.group,function(i,val){
-                enrollCheck(val.event_id,val.event_project_id,val.id,title,val.title);
 				_html += '<label for="'+index + st + i +'" class="weui_cell p10 weui_check_label">';
-				_html += '<div class="weui_cell_bd weui_cell_primary f14">'+ val.title +'';
+
+				//是否预报名
+                console.log(val)
+                if(parseInt(val.prepare_enroll)){
+                    _html += '<div class="weui_cell_bd weui_cell_primary f14"><span class="predpare">预</span>'  + val.title +'';
+                }else{
+                    _html += '<div class="weui_cell_bd weui_cell_primary f14">'  + val.title +'';
+                }
+
 				if(mono){
 					parseInt(val.person_min) == parseInt(val.person_max) ? _html += '<span class="label">'+ val.person_max +'人</span>' : _html += '<span class="label">'+ val.person_min +'~'+ val.person_max +'人</span>';
 				}
@@ -137,7 +140,7 @@ seajs.use(requireFun, function(zepto,base,login,tab,wx){
 					_html += '非会员:'+ ( val.nomember_fee == 0 ? '免费' : val.nomember_fee + '元/人'  ) + '</p>';
 				}
 				_html += '</div><div class="weui_cell_hd">';
-				_html += '<input data-project="' + val.event_project_id +'"  value="'+ val.id +'" name="radio" type="radio" id="'+ index + st + i +'" class="weui_check"><i class="weui_icon_checked"></i>'
+				_html += '<input data-desc="'+ item.title +'-'+ val.title +'" data-prepare="' + val.prepare_enroll +'" data-project="' + val.event_project_id +'"  value="'+ val.id +'" name="radio" type="radio" id="'+ index + st + i +'" class="weui_check"><i class="weui_icon_checked"></i>'
 				_html += '</div></label>';
 			});
 			_html += '</div>';
@@ -148,32 +151,39 @@ seajs.use(requireFun, function(zepto,base,login,tab,wx){
     $("#next").on('tap',function(){
 		project_id = $('input[type="radio"][name="radio"]:checked').data('project');
 		group_id = $('input[type="radio"][name="radio"]:checked').val();
+        var prepare = $('input[type="radio"][name="radio"]:checked').data('prepare');
         if(project_id == undefined && group_id == undefined){
-            base.tips("请选择组别")
-        }else{
-            //赛事报名检测
-            $.get(base.enrollCheck,{event_id:id, project_id:project_id, group_id:group_id},function(data){
-                if(data.ret == 0){
-                    window.location.href = 'enroll.html?id=' + id + "&project_id=" + project_id + "&group_id=" + group_id;
-                }else{
-                    switch (data.ret) {
-                        case 6159: base.tips('报名人数大于赛事最大上限');break;
-                    }
-                }
-            },'json');
+            base.tips("请选择组别");
+            return
         }
-    });
+        if(prepare == '1' || prepare == '2'){
+            var txt = '您选择的' + $('input[type="radio"][name="radio"]:checked').data('desc') + '已开启预报名，需要主办方审核通过后才能成功报名，若审核不通过，将退还报名费用';
+            if(!confirm(txt)){
+                return
+            }
+        }
 
-    function enrollCheck(id,project,group,title,item){
-        $.get(base.enrollCheck,{event_id:id, project_id:project, group_id:group},function(data){
-            if(data.ret == '6159'){
-                $('.tip_box').append('<div class="tip">['+ title + ' / '+ item +'] 人数以满！<i class="weui_icon_cancel"></i></div>');
+        //赛事报名检测
+        $.get(base.enrollCheck,{event_id:id, project_id:project_id, group_id:group_id},function(data){
+            if(data.ret == 0){
+				/*
+				if(prepare == '0') {
+					//保险
+					window.location.href = '../insurance/list.html?id=' + id + "&project_id=" + project_id + "&group_id=" + group_id + "&type=event";
+				}else{
+					window.location.href = 'enroll.html?id=' + id + "&project_id=" + project_id + "&group_id=" + group_id;
+				}
+				*/
+				window.location.href = 'enroll.html?id=' + id + "&project_id=" + project_id + "&group_id=" + group_id;
+
+            }else{
+                switch (data.ret) {
+                    case 6159: base.tips('报名人数大于赛事最大上限'); break;
+                }
             }
         },'json');
-        $('.tip_box').delegate('.tip','click',function(){
-            $(this).hide();
-        })
-    };
+
+    });
 
 	//禁止微信
     wx.ready(function(){

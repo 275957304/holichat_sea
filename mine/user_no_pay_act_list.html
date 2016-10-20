@@ -30,7 +30,7 @@
 	<div class="panel">
 		<div class="tab tab_fixed">
 			<ul class="tab-nav">
-				<li><a href="user_act_list.html">已报名</a></li>
+				<li><a href="index.html">已报名</a></li>
 				<li class="current">未支付</li>
 			</ul>
 			<ul id="list" class="weui_panel_bd"></ul>
@@ -39,8 +39,8 @@
 </div>
 <div id="back_top"></div>
 <script type="text/javascript">
-var requireFun = ['zepto','base','login','dropload','jweixin'];
-seajs.use(requireFun, function(zepto,base,login){
+var requireFun = ['zepto','base','login','jweixin','dropload'];
+seajs.use(requireFun, function(zepto,base,login,wx){
 	var session = base.getItem('session'),
 		page = 1,
 		page_size = 10;
@@ -61,7 +61,7 @@ seajs.use(requireFun, function(zepto,base,login){
 				success: function(data){
 					page++;
 					response = data.data.list;
-					console.log(response);
+
 					var _html = '';
 					if(data.data.list.length < 1){
 						me.lock();
@@ -70,23 +70,36 @@ seajs.use(requireFun, function(zepto,base,login){
 					$('#list').append(_html);
 					for(var i = 0; i < response.length; i++){
 						var getInfo = base.proGroupInfo(response[i].enroll_type,response[i].project_id,response[i].group_id);
+						console.log(response[i]);
 						var orderInfo = JSON.stringify({
-							amount : response[i].amount,
+							id : response[i].org_act_id,
+							project_id : response[i].project_id,
+							group_id : response[i].group_id,
+							amount : response[i].enroll_amount,
 							enroll_id : response[i].enroll_id,
 							enroll_type : response[i].enroll_type
 						});
 						//看项目是否以过期
-						var color = 'price';
 						var time = new Date().getTime();
 						var deadline = response[i].deadline;
 						var deadlineDate = deadline.substring(0,10).split('-');
 						deadlineDate = Date.parse(deadlineDate[1] + '/' + deadlineDate[2] + '/' + deadlineDate[0] + ' ' + deadline.substring(10));
-						time > deadlineDate ? color = 'priceGary' : color = 'price';
-					_html +='<li data-inof='+ orderInfo +' data-deadline="'+ deadlineDate +'" class="weui_media_box weui_media_appmsg list">' +
-							'<div class="weui_media_hd"><img alt="" src="' + base.imgURL + response[i].logo_image + '@150h_150w_1e_1c_10-2ci" class="weui_media_appmsg_thumb"></div>'+
+						var payState = 0, payStateText = '<span style="font-size:12px" class="green">待支付</span>';
+						// payState: 0 待支付  1订单失效  2审核通过待支付
+						if(time > deadlineDate){
+							payState = 1;
+							payStateText = '<span style="font-size:12px" class="red">订单失效</span>';
+						}else if(response[i].is_confirm == 'S' || response[i].enroll_status == 'S'){
+							payState = 2;
+							payStateText = '<span style="font-size:12px" class="green">审核通过待支付</span>';
+						}
+
+
+					_html +='<li data-inof='+ orderInfo +' data-state="'+ payState +'" class="weui_media_box weui_media_appmsg list">' +
+							'<div class="weui_media_hd"><img alt="" src="' + base.testImg(response[i].logo_image) + '@150h_150w_1e_1c_10-2ci" class="weui_media_appmsg_thumb"></div>'+
 							'<div class="weui_media_bd">'+
 							'<h4 class="title">'+ response[i].title +'</h4>' +
-							'<p class="weui_media_desc group">项目：'+ getInfo.data.project +'</p><p class="weui_media_desc group">组别：'+ getInfo.data.group +'</p></div><div class="weui_cell_ft"><span class="'+ color +'"><em>'+ parseFloat(response[i].amount,10) +'</em>元</span></div></li>';
+							'<p class="weui_media_desc group">项目：'+ getInfo.data.project +'</p><p class="weui_media_desc group">组别：'+ getInfo.data.group +'</p></div><div class="weui_cell_ft">'+ payStateText +'</div></li>';
 					};
 					$('#list').append(_html);
 					me.resetload();
@@ -102,45 +115,102 @@ seajs.use(requireFun, function(zepto,base,login){
  	$('#list').on('tap','li',function(){
 		if(isInfo){
 			var info = $(this).data('inof'),
-				deadline = $(this).data('deadline'),
-				getTime = new Date().getTime(),
-				id = '['+ info.enroll_id +']';
-			var href ='../pay/weixin_unifiedorder.html?enroll_id='+ info.enroll_id +'&type=';
-			switch(info.enroll_type){
-				case 'a': href += 'activity&order='; var url = base.activityEnrollSelect; var data={activity_enroll_id_params:id,session : session};  break;
-				case 'e': href += 'event&order='; var url = base.eventEnrollSelect; var data={event_enroll_id_params:id,session : session};  break;
-				case 't': href += 'training&order='; var url = base.trainingEnrollSelect; var data={training_enroll_id_params:id,session : session};  break;
+				state = $(this).data('state'),
+				href='../pay/weixin_unifiedorder.html?enroll_id='+ info.enroll_id +'&type=',
+				url ="",
+				selectData ="",
+				enroll_id = '['+ info.enroll_id +']',
+				infoType =  info.enroll_type;
+				
+			if(state == 1){
+				base.tips("该订单已经失效");
+				return
+			}
+
+			if(infoType =='a'){
+				href += 'activity&order=';
+				url = base.activityEnrollSelect;
+				selectData={activity_enroll_id_params:enroll_id,session : session};
+				$.get(base.activityGetEnrollInfo,{'session': session,'activity_id':info.id},function(data){
+					console.log(data)
+					$.each(data.data.project,function(index, item){
+						if(info.project_id == item.id){
+							$.each(item.group,function(i,val){
+								if(info.group_id == val.id){
+									console.log(val.prepare_enroll)
+									enrollSelect(selectData,val.prepare_enroll)
+								}
+							})
+						}
+					})
+				},'json');
+			}else if(infoType == 'e'){
+				href += 'event&order=';
+				url = base.eventEnrollSelect;
+				selectData={event_enroll_id_params:enroll_id,session : session};
+				$.get(base.getEnrollInfo,{'session': session,'event_id':info.id},function(data){
+					$.each(data.data.project,function(index, item){
+						if(info.project_id == item.id){
+							$.each(item.group,function(i,val){
+								if(info.group_id == val.id){
+									console.log(val.prepare_enroll)
+									enrollSelect(selectData,val.prepare_enroll)
+								}
+							})
+						}
+					})
+				},'json');
+
+			}else if(infoType == 't'){
+				href += 'training&order=';
+				url = base.trainingEnrollSelect;
+				selectData={training_enroll_id_params:enroll_id,session : session}
+				$.get(base.trainingGetEnrollInfo,{'session': session,'activity_id':info.id},function(data){
+					$.each(data.data.project,function(index, item){
+						if(info.project_id == item.id){
+							$.each(item.group,function(i,val){
+								if(info.group_id == val.id){
+									console.log(val.prepare_enroll)
+									enrollSelect(selectData,val.prepare_enroll)
+								}
+							})
+						}
+					})
+				},'json');
 			};
-			if(getTime > deadline){
-				base.tips("项目已经过期！");
-				return false;
-			};
-			$.ajax({
-				type:'POST',
-				url:url,
-				data:data,
-				dataType:'json',
-				async: false,
-				beforeSend : function(){
-		            base.tips("加载中...",1);
-		        },
-				success : function(data){
-					if(data.ret == '0'){
-						window.location.href = href + data.data.order_no
+
+			function enrollSelect(selectData,predpare){
+				$.ajax({
+					type:'POST',
+					url:url,
+					data:selectData,
+					dataType:'json',
+					async: false,
+					beforeSend : function(){
+			            base.tips("加载中...",1);
+			        },
+					success : function(data){
+						console.log(data)
+						if(data.ret == '0'){
+							window.location.href = href + data.data.order_no  + '&predpare=' + predpare;
+						}
+					},
+					error:function(xhr){
+						console.log(xhr)
 					}
-				},
-				error:function(xhr){
-					console.log(xhr)
-				}
-			})
+				})
+			}
 		}else{
 			return false;
 		}
 	});
 
 	//禁止微信
-	//require('jweixin')
-	base.hideOptionMenuWx();
+	if(base.isWeixin()){
+		wx.ready(function(){
+			wx.hideOptionMenu();
+		});
+	}
 
 });
 </script>
