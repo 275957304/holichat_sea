@@ -75,7 +75,7 @@ seajs.use(requireFun, function(zepto,base,login,idcard,bs64,wx){
     var insurance_id = base.getURLVar('insurance_id'),
         type = base.getURLVar('type'),
         total = 0;
-        time = "",
+        times = "",
         id = base.getURLVar('id'),
         d = new Date(),
         min = 1;
@@ -113,14 +113,17 @@ seajs.use(requireFun, function(zepto,base,login,idcard,bs64,wx){
     });
 
     $('#time').on('change',function(){
-        time = $(this).val();
-        var time_array = time.split('-'),
+        times = $(this).val();
+        var time_array = times.split('-'),
+            d = new Date(),
             year = d.getFullYear(),
             mon=d.getMonth() + 1,
             day=d.getDate() + 3;
-        if(time_array[0] < year || time_array[1] < mon || time_array[2] < day){
-            base.tips("生效日期不可早于当前日期+2天");
-        }
+
+        console.log(time_array)
+        console.log(year)
+        console.log(mon)
+        console.log(day)
     })
 
 
@@ -144,8 +147,9 @@ seajs.use(requireFun, function(zepto,base,login,idcard,bs64,wx){
             data = [],
             base64 =""
             parameter = {};
-        if(time ==''){
-            base.tips("请填写生效时期" );
+        console.log(times)
+        if(times ==''){
+            base.tips("请填写有效时期");
             return false;
         }
         for(var i=0; i<len; i++){
@@ -182,7 +186,7 @@ seajs.use(requireFun, function(zepto,base,login,idcard,bs64,wx){
             business_type : type,
             business_id: id,
             insurance_id : insurance_id,
-            effective_date : time,
+            effective_date : times,
             session: base.getItem('session'),
             insurance_data: base64
         };
@@ -191,9 +195,6 @@ seajs.use(requireFun, function(zepto,base,login,idcard,bs64,wx){
             url: base.addInsuranceData,
             data: parameter,
             dataType: 'json',
-            beforeSend : function(){
-                base.tips("加载中...",1);
-            },
             success: function(data){
                 if(data.ret == 0){
                     var order = data.data.order_no,
@@ -205,15 +206,15 @@ seajs.use(requireFun, function(zepto,base,login,idcard,bs64,wx){
                             base.tips("生效日期不可早于当前日期+2天");
                             break;
                         case 7303:
-                            base.tips("请填写生效日期");
+                            base.tips("请填写有效日期");
                             break;
                         default:
-                            base.tips(data.ret);
+                            //base.tips(data.ret);
                     }
                 }
             },
             error: function(xhr) {
-				console.log(xhr)
+				//console.log(xhr)
             }
         });
 

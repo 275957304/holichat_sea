@@ -111,7 +111,7 @@ seajs.use(requireFun, function(zepto,base,add,wx){
             base.tips("加载中...",1);
         },
         success: function(data){
-			$('.tips').hide();
+			$('.tips').remove();
 			var event_id = data.data.event_id,
                 enroll_infos = data.data.enroll_infos;
             project_id = data.data.event_project_id;
@@ -128,7 +128,6 @@ seajs.use(requireFun, function(zepto,base,add,wx){
             var getInfo = base.getItemInfo('event',event_id);
             $('#time').text(getInfo.begin_date.substring(0,10));
             $('#location').text( add.getAddress(getInfo.region_id)  + getInfo.address );
-            console.log(data)
             //报名信息
             $(enroll_infos).each(function(index,item){
                 var other_fields = JSON.parse(item.other_fields);
@@ -143,12 +142,23 @@ seajs.use(requireFun, function(zepto,base,add,wx){
                         $.each(data.data.project,function(index, item){
                             if(project_id == item.id){
                                 $.each(item.group,function(i,val){
+
                                     if(group_id == val.id){
-                                        var template = JSON.parse(val.enroll_template);
-                                        $.each(template,function(i,val){
-                                            for(var i=0; i<val.length; i++){
-                                                var key = val[i].name;
-                                                 _html += '<div class="weui_cell">' + val[i].label + '<span class="weui_cell_desc">'+ other_fields[key] +'</span></div>'
+                                        var template = JSON.parse(val.enroll_template),
+                                            common = template.common,
+                                            personal = template.personal;
+                                            //console.log(other_fields)
+                                            console.log(common)
+
+                                        $.each(personal,function(i,val){
+                                            var other_txt =  val.type == 'image_file' ? '<img width="35" height="35" src="' + base.imgHath + 'uploads/' + other_fields[val.name] + '"/>'  : other_fields[val.name],
+                                                isType = typeof(other_fields[val.name]);
+                                            //console.log(val.label)
+                                            //console.log(other_fields[val.name])
+                                            if(isType === 'string'){
+                                                _html += '<div class="weui_cell">' + val.label + '<span class="weui_cell_desc">'+ other_txt +'</span></div>'
+                                            }else{
+                                                _html += '<div class="weui_cell">' + val.label + '<span class="weui_cell_desc">'+ other_txt.card_value +'</span></div>'
                                             }
                                         })
                                     }

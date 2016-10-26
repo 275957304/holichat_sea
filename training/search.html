@@ -57,7 +57,7 @@ seajs.use(requireFun, function(a,base,b,c,wx){
                     url: base.trainingSearch + "?community_cid=" + community_cid + "&location_id=" + location_id + "&official=" + official + "&page_size=" + page_size + "&page=" + page + "&content=" + content + "&training_type=" + training_type,
                     dataType: 'json',
                     success: function(data){
-                        $('.tips').hide();
+                        $('.tips').remove();
                         page++;
                         response = data.data.list;
                         var _html = '';

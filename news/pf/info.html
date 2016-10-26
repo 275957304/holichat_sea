@@ -43,7 +43,7 @@ seajs.use(requireFun, function(zepto,base){
     $.ajax({
         type: 'get',
         url: setUrl,
-        data:{id:get_id},
+        data:{'id':get_id,'hits_type':web},
         dataType: 'json',
         success: function(data){
 			console.log(data)

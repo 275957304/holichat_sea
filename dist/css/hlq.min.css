@@ -58,6 +58,8 @@ ul,li{list-style: none;}
 .checkbox_icon .weui_icon_checked{display:inline-block; height: 16px;width: 16px;text-align: center; border: 1px solid #ddd;}
 .weui_cells_radio .weui_check:checked+.weui_icon_checked{border: 1px solid #09bb07;}
 
+.main .weui_cells_checkbox .radio_active .weui_icon_checked:before{content: '\EA01';  color: #c9c9c9;}
+.mark{position: absolute; left:3px; top:10px; color: red; font-size: 20px; z-index: 9999;}
 .weui_cells_form .weui_uploader_input_wrp{width: 30px; height: 30px; margin-bottom:0;}
 .weui_cells_form .weui_uploader_input_wrp:before{height: 18px;}
 .weui_cells_form .weui_uploader_input_wrp:after{width: 18px;}
@@ -78,14 +80,15 @@ ul,li{list-style: none;}
  .prompt-app .weui_cell{padding:10px 5px}
  .prompt-app .prompt-close .weui_icon_cancel:before{font-size:28px}
  .header h1{text-align:center;font-size:18px;font-weight:400}
- .header~.main{position:relative;border-top:45px solid transparent;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;overflow:hidden}
+ /*.header~.main{position:relative;border-top:45px solid transparent;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;overflow:hidden}*/
+ .header~.main{position: absolute;top: 45px;width: 100%;overflow-y: scroll; overflow-x: hidden;-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;}
  .app .main{padding-bottom:60px}
  .icon-back{display:inline-block;width:12px;height:12px;border-bottom:2px solid #fff;border-left:2px solid #fff;position:absolute;top:50%;left:50%;margin-left:-6px;margin-top:-6px;-moz-transform:rotateZ(45deg);-ms-transform:rotateZ(45deg);-webkit-transform:rotateZ(45deg);transform:rotateZ(45deg)}
  .header .bnt-back{display:block;position:absolute;left:0;height:44px;width:44px}
  .header .bnt_right{display:block;position:absolute;right:0;height:44px;top:0}
  .header .bnt_right .hr_btn{color:#fff; border-radius:5px; border:1px solid #fff; font-size:13px; padding:4px 6px; margin-right:10px;}
  .footer{bottom:-1px;height:42px;background:#fff}
- .footer~.main{border-bottom:42px solid transparent}
+ .footer~.main{bottom:42px}
  .footer .btn{border-radius:0}
  .header .btn_city{display:none;position:absolute;left:0;height:44px;font-size:13px;color:#fff;padding:0 18px 0 10px;max-width:60px;overflow:hidden;background-repeat:no-repeat;background-size:16px 16px;background-position:right center;background-image:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAABl0lEQVR4nO3WMU4CURSFYTqx12ijjZa6C8FOwMpd6BLERbAEbbXTThtKOzuNqFswKMTkt3BuMgIZ3sjVmYfnS2jnnnOAQKUiIiIiIiIiIiIyBlgE2kAXuANOga2icxlgGzhLsnWBY6Dq9fAqcMO4V2DH5chs+WpJllHXwILHgaMJDzf9IkdIyvcz8h16HLnIOAAwAPYc+uTN1UhuZzn3OHQ15Yh9EmoOvUIz1ae88+bS49hJwCEboe7Qb1qe0PIAbY+Dy0CvDCMAu8BbYJZHYMnr8DrwEHh4ADRcDn/P0GT6d97cA2veAQobofDyqSB5R2g63CxH+VSgPxshKT8sTflUsF8fobTlUwHzjDDMMwLQKnX5VFD3EaIpnwqcd4RWxrPiKm88Roi2vJllBGA/6vLmJyMAB8BH9OUNsAm8BBZ6T14hnoGNovsFId8nIUT53/lRjiPEV944jBBveTPDCPGXNz8YYX7KmxwjzF95EzDC/JY3fP1PeJpQvkcsv/OzAlaBDnCbvDrAStG5RERERERERETkP/gEGvWdunDSSVkAAAAASUVORK5CYII=)}
 

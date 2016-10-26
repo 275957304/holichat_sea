@@ -82,7 +82,7 @@ var tab = new tabs.Scroll('.tab', {role: 'tab'});
         },
         success: function(data){
             console.log(data);
-            $('.tips').hide();
+            $('.tips').remove();
             if(getFrom == 'q'){
                 base.setInviteCode(data.data.community_cid);
             }

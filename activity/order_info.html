@@ -111,9 +111,9 @@ seajs.use(requireFun, function(zepto,base,add,wx){
             base.tips("加载中...",1);
         },
         success: function(data){
-            $('.tips').hide();
+            $('.tips').remove();
 			var activity_id = data.data.activity_id,
-                enroll_infos = data.data.enroll_infos;			
+                enroll_infos = data.data.enroll_infos;
             project_id = data.data.activity_project_id;
             group_id = data.data.activity_group_id;
 			$('#title').html(data.data.title);
@@ -144,11 +144,16 @@ seajs.use(requireFun, function(zepto,base,add,wx){
                             if(project_id == item.id){
                                 $.each(item.group,function(i,val){
                                     if(group_id == val.id){
-                                        var template = JSON.parse(val.enroll_template);
-                                        $.each(template,function(i,val){
-                                            for(var i=0; i<val.length; i++){
-                                                var key = val[i].name;
-                                                 _html += '<div class="weui_cell">' + val[i].label + '<span class="weui_cell_desc">'+ other_fields[key] +'</span></div>'
+                                        var template = JSON.parse(val.enroll_template),
+                                            common = template.common,
+                                            personal = template.personal;
+                                        $.each(personal,function(i,val){
+                                            var other_txt =  val.type == 'image_file' ? '<img width="35" height="35" src="' + base.imgHath + 'uploads/' + other_fields[val.name] + '"/>'  : other_fields[val.name],
+                                                isType = typeof(other_fields[val.name]);
+                                            if(isType === 'string'){
+                                                _html += '<div class="weui_cell">' + val.label + '<span class="weui_cell_desc">'+ other_txt +'</span></div>'
+                                            }else{
+                                                _html += '<div class="weui_cell">' + val.label + '<span class="weui_cell_desc">'+ other_txt.card_value +'</span></div>'
                                             }
                                         })
                                     }
@@ -157,7 +162,7 @@ seajs.use(requireFun, function(zepto,base,add,wx){
                         });
                     }
                 });
-            })			
+            })
 			$('#enroll_infos').append(_html);
         },
         error: function(res) {

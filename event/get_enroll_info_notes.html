@@ -57,7 +57,7 @@ seajs.use(requireFun, function(zepto,base,wx){
             base.tips("加载中...",1);
         },
         success: function(data) {
-            $('.tips').hide();
+            $('.tips').remove();
             if(data.data.notes){
                 $('.article').html(data.data.notes)
             }

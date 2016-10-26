@@ -63,7 +63,7 @@ seajs.use(requireFun, function(zepto,base,login,tab,wx){
             base.tips("加载中...",1);
         },
         success: function(data){
-            $('.tips').hide();
+            $('.tips').remove();
 			if(data.data.project.length == 0){
 				base.tips("没有组别信息");
 				setTimeout(function(){window.history.back();},1500)

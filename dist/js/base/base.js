@@ -4,7 +4,7 @@ define(function(require, exports, module) {
 	var H = {
 		loginURL : "http://m.holichat.com/ceshi/login/", //微信登录回调地
         imgURL : "http://holichat-res-inside.img-cn-hangzhou.aliyuncs.com/uploads/",
-		imgHath : "http://holichat-res-inside.oss-cn-hangzhou.aliyuncs.com/",
+		imgHath : "http://holichat-res-inside.oss-cn-hangzhou.aliyuncs.com/",  //阿里去图片前缀
         login : baseURL + 'login/api/login',    // 登录
         eventList : baseURL + 'event/view/event_list',     // 赛事列表
         eventSearch: baseURL + 'event/view/event_search',  // 赛事搜索
@@ -207,8 +207,10 @@ define(function(require, exports, module) {
 			var html  ='<div class="tips">';
 				html +='<div class="tips-message"> ' +  (type ? '<i class="loading-bright"></i>' + msg : msg)  + ' </div>';
 				html +='</div>';
-				$('body').append(html);
-				setTimeout('$(".tips").remove();',1500);
+				if($('.tips').length == 0){
+					$('body').append(html);
+					setTimeout('$(".tips").remove();',1500);
+				}
 		},
 		goTop : function(){
 			$(window).scroll(function(){

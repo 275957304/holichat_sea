@@ -166,8 +166,6 @@ seajs.use(requireFun, function(zepto,base,wx,idcard,bs64,jsform){
         other_fields = jsform.fsubmit(peopleNumber,formList);
         if(!other_fields) return false;
 
-        console.log(common_data)
-
 		merge.project_id = parseInt(project_id,10);
 		merge.group_id = parseInt(group_id,10);
 		merge.common_data = common_data;
@@ -194,7 +192,7 @@ seajs.use(requireFun, function(zepto,base,wx,idcard,bs64,jsform){
             data: parameter,
             dataType: 'json',
             beforeSend : function(){
-                base.tips("加载中...",1);
+                //base.tips("加载中...",1);
             },
             success: function(data){
                 console.log(data);
@@ -239,7 +237,7 @@ seajs.use(requireFun, function(zepto,base,wx,idcard,bs64,jsform){
                     switch (data.ret) {
                         case 6161:
                             base.tips("队伍队名己存在");
-                            $("input[name='team_name']").val("").focus();
+                            //$("input[name='team_name']").val("").focus();
                             break;
                         case 6193:
                             base.tips("当前优惠码的使用己达上限");
@@ -255,8 +253,14 @@ seajs.use(requireFun, function(zepto,base,wx,idcard,bs64,jsform){
                         case 6482:
                                 base.tips("无效的港澳通行证号码");
                                 break;
+                        case 7401:
+                                base.tips("报名信息已存在");
+                                break;
+                        case 6487:
+                                base.tips("请填写信息");
+                                break;
                         default:
-                            base.tips(data.ret);
+                            //base.tips(data.ret);
                     }
                 }
             },
@@ -297,6 +301,20 @@ seajs.use(requireFun, function(zepto,base,wx,idcard,bs64,jsform){
             },'json');
         }else{
             $('#promoArea').html('');
+        }
+    });
+
+    //单选框
+    $('.radio_sele').on('tap',function(){
+        var radioId = $(this).attr('for'),
+            checkedState = $("#"+radioId).attr("checked"),
+            radioName = $("#"+radioId).attr('name');
+        if(checkedState == 'true'){
+            $(this).addClass('radio_active')
+            $("#"+radioId).attr('checked',false);
+        }else{
+            $(this).removeClass('radio_active')
+            $("#"+radioId).attr('checked',true);
         }
     });
 
